@@ -16,3 +16,13 @@ mongoose.connect(mongoURI).then(() => {
 
 app.get('/', (req, res) => res.send("موقع الدراما يعمل!"));
 app.listen(process.env.PORT || 3000);
+const DramaSchema = new mongoose.Schema({
+    id: Number,
+    name: String,
+    category: String,
+    country: String,
+    year: String,
+    img: String, // سيخزن البوستر بصيغة Base64
+    desc: String,
+    eps: Array // سيخزن قائمة الحلقات والروابط
+});
