@@ -1,0 +1,16 @@
+name: Manual Data Upload
+on: workflow_dispatch
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm install
+      - name: Run Upload Script
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: node server.js
