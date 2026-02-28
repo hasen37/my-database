@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم المطورة | دراما 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --accent: #FFD700; --bg: #050505; --card: #111; --danger: #ff4d4d; --success: #28a745; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 20px; direction: rtl; }
+        .admin-container { max-width: 900px; margin: auto; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: var(--accent); border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 25px; font-size: 22px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: 1 / -1; }
+        label { display: block; margin-top: 10px; font-size: 13px; color: var(--accent); font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 12px; margin-top: 5px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .action-btns { margin-top: 25px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #btn-save { background: var(--accent); color: #000; }
+        #btn-update { background: var(--success); color: white; display: none; }
+        #btn-cancel { background: #444; color: white; display: none; }
+        .preview-img { width: 140px; height: 190px; object-fit: cover; border-radius: 12px; display: none; margin: 15px auto; border: 2px solid var(--accent); }
+        
+        /* قسم إدارة الحلقات المطور */
+        .ep-add-box { background: #0d0d0d; border: 1px dashed var(--accent); padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .ep-row { display: flex; gap: 10px; margin-top: 10px; }
+        .ep-btn-add { background: var(--accent); border: none; padding: 0 20px; border-radius: 10px; cursor: pointer; font-weight: bold; color: #000; }
+        
+        .ep-list-container { margin-top: 15px; background: #1a1a1a; border-radius: 10px; padding: 10px; border: 1px solid #333; max-height: 300px; overflow-y: auto; }
+        .ep-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #222; gap: 10px; }
+        .ep-item:last-child { border-bottom: none; }
+        .ep-info { flex: 2; font-size: 14px; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ep-actions { display: flex; gap: 5px; }
+        .ep-edit-btn { background: #333; color: var(--accent); border: 1px solid var(--accent); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .ep-delete-btn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        
+        .series-list { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .series-card { background: #161616; border-radius: 15px; padding: 12px; border: 1px solid #222; text-align: center; }
+        .series-card img { width: 100%; height: 210px; object-fit: cover; border-radius: 10px; }
+        .hidden-json { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h2 id="form-title"><i class="fas fa-plus-circle"></i> إضافة محتوى جديد</h2>
+    <input type="hidden" id="edit-id">
+    
+    <div class="form-grid">
+        <div><label>اسم المسلسل:</label><input type="text" id="name" placeholder="اسم العمل"></div>
+        <div><label>التصنيف:</label><input type="text" id="category" placeholder="دراما، أكشن..."></div>
+        <div><label>الدولة:</label><input type="text" id="country" placeholder="العراق، مصر..."></div>
+        <div><label>السنة:</label><input type="number" id="year" value="2026"></div>
+        
+        <div class="full-width">
+            <label>البوستر:</label>
+            <input type="file" id="imageFile" accept="image/*" onchange="previewImage(this)">
+            <img id="imgPreview" class="preview-img">
+        </div>
+
+        <div class="full-width"><label>الوصف:</label><textarea id="desc" rows="2"></textarea></div>
+
+        <div class="full-width ep-add-box">
+            <label><i class="fas fa-play-circle"></i> إضافة حلقة جديدة:</label>
+            <div class="ep-row">
+                <input type="number" id="epNumber" placeholder="رقم" style="flex: 0.3;">
+                <input type="text" id="epLink" placeholder="ضع رابط الحلقة هنا" style="flex: 2;">
+                <button type="button" class="ep-btn-add" onclick="addEpisode()">إضافة</button>
+            </div>
+            
+            <label style="margin-top: 20px;"><i class="fas fa-list"></i> إدارة الحلقات المضافة:</label>
+            <div id="episodesListUI" class="ep-list-container">
+                <div style="text-align: center; color: #555; font-size: 12px; padding: 10px;">لا توجد حلقات مضافة</div>
+            </div>
+            <textarea id="eps" class="hidden-json"></textarea>
+        </div>
+    </div>
+
+    <div class="action-btns">
+        <button id="btn-save" class="btn" onclick="saveSeries()"><i class="fas fa-save"></i> حفظ البيانات</button>
+        <button id="btn-update" class="btn" onclick="updateSeries()"><i class="fas fa-check"></i> حفظ التعديلات</button>
+        <button id="btn-cancel" class="btn" onclick="cancelEdit()">إلغاء</button>
+    </div>
+
+    <hr style="margin: 40px 0; border: 0; border-top: 1px solid #222;">
+    <h2><i class="fas fa-database"></i> المحتوى المضاف</h2>
+    <div id="seriesDisplayList" class="series-list"></div>
+</div>
+
+<script>
+    const API_URL = "http://127.0.0.1:5000/api/series";
+    let base64Image = "";
+    let allSeries = [];
+    let currentEpisodes = [];
+
+    // تحديث واجهة الحلقات (عرض قائمة الحلقات مع أزرار التعديل والحذف)
+    function updateEpisodesUI() {
+        const listUI = document.getElementById('episodesListUI');
+        const epsArea = document.getElementById('eps');
+        
+        if (currentEpisodes.length === 0) {
+            listUI.innerHTML = '<div style="text-align: center; color: #555; font-size: 12px; padding: 10px;">لا توجد حلقات مضافة</div>';
+        } else {
+            listUI.innerHTML = currentEpisodes.map((ep, index) => `
+                <div class="ep-item">
+                    <div class="ep-info">
+                        <strong>${ep.title}</strong>
+                        <div style="font-size:10px; color:#666; text-decoration: underline;">${ep.link[0]}</div>
+                    </div>
+                    <div class="ep-actions">
+                        <button class="ep-edit-btn" onclick="editSpecificEpisode(${index})"><i class="fas fa-edit"></i></button>
+                        <button class="ep-delete-btn" onclick="removeEpisode(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        epsArea.value = JSON.stringify(currentEpisodes);
+    }
+
+    // إضافة حلقة للقائمة المؤقتة
+    function addEpisode() {
+        const num = document.getElementById('epNumber').value;
+        const link = document.getElementById('epLink').value;
+
+        if (!num || !link) { alert("يرجى إدخال رقم ورابط الحلقة!"); return; }
+
+        currentEpisodes.push({
+            "title": `الحلقة ${num}`,
+            "link": [link]
+        });
+
+        updateEpisodesUI();
+        document.getElementById('epNumber').value = parseInt(num) + 1;
+        document.getElementById('epLink').value = "";
+    }
+
+    // تعديل حلقة محددة داخل القائمة
+    function editSpecificEpisode(index) {
+        const ep = currentEpisodes[index];
+        const newTitle = prompt("تعديل عنوان الحلقة:", ep.title);
+        const newLink = prompt("تعديل رابط الحلقة:", ep.link[0]);
+
+        if (newTitle && newLink) {
+            currentEpisodes[index] = {
+                "title": newTitle,
+                "link": [newLink]
+            };
+            updateEpisodesUI();
+        }
+    }
+
+    // حذف حلقة محددة
+    function removeEpisode(index) {
+        if(confirm("هل تريد حذف هذه الحلقة من القائمة؟")) {
+            currentEpisodes.splice(index, 1);
+            updateEpisodesUI();
+        }
+    }
+
+    async function fetchSeries() {
+        try {
+            const response = await fetch(API_URL);
+            allSeries = await response.json();
+            renderList();
+        } catch (error) { console.error("تعذر الاتصال بالسيرفر"); }
+    }
+
+    function renderList() {
+        const listContainer = document.getElementById('seriesDisplayList');
+        listContainer.innerHTML = allSeries.map(item => `
+            <div class="series-card">
+                <img src="${item.img}">
+                <h4>${item.name}</h4>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <button onclick="startEdit(${item.id})" style="flex:1; background:#333; color:yellow; border:1px solid yellow; border-radius:5px; cursor:pointer; padding:5px;">تعديل</button>
+                    <button onclick="deleteSeries(${item.id})" style="background:red; color:white; border:none; border-radius:5px; cursor:pointer; padding:5px 10px;">حذف</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('imgPreview');
+                img.src = e.target.result;
+                img.style.display = "block";
+                base64Image = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function saveSeries() {
+        const name = document.getElementById('name').value;
+        if (!name || !base64Image) { alert("الاسم والبوستر مطلوبان!"); return; }
+        try {
+            const data = {
+                name, category: document.getElementById('category').value,
+                country: document.getElementById('country').value,
+                year: document.getElementById('year').value,
+                img: base64Image, desc: document.getElementById('desc').value,
+                eps: currentEpisodes
+            };
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) location.reload();
+        } catch (e) { alert("حدث خطأ أثناء الحفظ!"); }
+    }
+
+    function startEdit(id) {
+        const item = allSeries.find(s => s.id === id);
+        if (!item) return;
+        document.getElementById('edit-id').value = item.id;
+        document.getElementById('name').value = item.name;
+        document.getElementById('category').value = item.category || "";
+        document.getElementById('country').value = item.country || "";
+        document.getElementById('year').value = item.year || 2026;
+        document.getElementById('desc').value = item.desc || "";
+        
+        currentEpisodes = [...(item.eps || [])];
+        updateEpisodesUI();
+
+        document.getElementById('imgPreview').src = item.img;
+        document.getElementById('imgPreview').style.display = "block";
+        base64Image = item.img;
+        
+        document.getElementById('epNumber').value = (currentEpisodes.length + 1);
+
+        document.getElementById('btn-save').style.display = "none";
+        document.getElementById('btn-update').style.display = "block";
+        document.getElementById('btn-cancel').style.display = "block";
+        document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> تعديل المحتوى';
+        window.scrollTo(0,0);
+    }
+
+    async function updateSeries() {
+        const id = document.getElementById('edit-id').value;
+        try {
+            const data = {
+                id: parseInt(id), 
+                name: document.getElementById('name').value,
+                category: document.getElementById('category').value,
+                country: document.getElementById('country').value,
+                year: document.getElementById('year').value,
+                desc: document.getElementById('desc').value,
+                img: base64Image, 
+                eps: currentEpisodes
+            };
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) location.reload();
+        } catch (e) { alert("فشل تحديث البيانات"); }
+    }
+
+    async function deleteSeries(id) {
+        if (!confirm("سيتم حذف العمل وجميع حلقاته نهائياً، هل أنت متأكد؟")) return;
+        await fetch(`http://127.0.0.1:5000/api/delete/series/${id}`, { method: 'DELETE' });
+        fetchSeries();
+    }
+
+    function cancelEdit() { location.reload(); }
+    window.onload = fetchSeries;
+</script>
+</body>
+</html>

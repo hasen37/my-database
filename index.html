@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دراما 2026 | عالم الترفيه</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="sidebar" class="sidebar">
+        <span class="close-btn" onclick="toggleSidebar()">&times;</span>
+        <div class="sidebar-header"><h2>القائمة</h2></div>
+        <div class="sidebar-links">
+            <a href="#" onclick="showHome()"><i class="fas fa-home"></i> الرئيسية</a>
+            <a href="#" onclick="showSeriesList()"><i class="fas fa-play-circle"></i> المسلسلات</a>
+            <a href="#" onclick="showChannels()"><i class="fas fa-tv"></i> القنوات</a>
+            <hr style="border-color: #333;">
+            <a href="#"><i class="fab fa-telegram"></i> قناة التيليجرام</a>
+        </div>
+    </div>
+
+    <div id="search-bar-container" class="search-overlay">
+        <input type="text" id="search-input" placeholder="ابحث عن مسلسل..." oninput="handleSearch()">
+        <div class="close-search" onclick="toggleSearch()">&times;</div>
+    </div>
+
+    <div id="screen-home" class="screen active">
+        <header class="header-main">
+            <div onclick="toggleSidebar()"><i class="fas fa-bars-staggered"></i></div>
+            <div class="logo-text">دراما <span style="color:var(--accent)">2026</span></div>
+            <div onclick="toggleSearch()"><i class="fas fa-search"></i></div>
+        </header>
+
+        <div id="hero-display" class="hero-section">
+            <div class="hero-content">
+                <div id="hero-title">جاري التحميل...</div>
+                <button class="btn-play" id="hero-play-btn"><i class="fas fa-play"></i> شاهد الآن</button>
+            </div>
+        </div>
+        <div id="rows-container"></div>
+    </div>
+
+    <div id="screen-series-list" class="screen">
+        <header class="header-main">
+            <div onclick="showHome()"><i class="fas fa-arrow-right"></i></div>
+            <div class="screen-title">اكتشف المسلسلات</div>
+            <div onclick="toggleSearch()"><i class="fas fa-search"></i></div>
+        </header>
+        <div id="series-grid-main" class="series-portrait-grid"></div>
+    </div>
+
+    <div id="screen-episodes" class="screen">
+        <div class="episodes-header-nav">
+            <div class="nav-back-circle" onclick="showHome()"><i class="fas fa-arrow-right"></i></div>
+            <div id="close-player-btn" onclick="closePlayer()" style="display:none;" class="close-player-modern">
+                <i class="fas fa-times"></i> إغلاق المشغل
+            </div>
+        </div>
+
+        <div id="video-container" class="video-container-modern" style="display:none;">
+            <div id="player-wrapper" style="width:100%; height:100%;">
+                </div>
+        </div>
+
+        <div id="servers-section" class="servers-container" style="display:none;">
+            <div class="section-label"><i class="fas fa-server"></i> اختر سيرفر المشاهدة:</div>
+            <div id="servers-list" class="servers-grid"></div>
+        </div>
+
+        <div class="series-hero-modern" id="series-hero-bg">
+            <div class="hero-overlay-gradient">
+                <div class="hero-main-content">
+                    <div class="hero-text-side">
+                        <h1 id="current-series-name">اسم المسلسل</h1>
+                        <div class="series-badges">
+                            <span class="badge-year">2026</span>
+                            <span class="badge-status">HD</span>
+                        </div>
+                    </div>
+                    <img id="series-poster-img" class="floating-poster" src="">
+                </div>
+            </div>
+        </div>
+
+        <div class="details-section">
+            <div class="section-label">القصة</div>
+            <p id="series-desc" class="description-text"></p>
+        </div>
+
+        <div class="episodes-section">
+            <div class="section-label">الحلقات</div>
+            <div id="episodes-list" class="episodes-column-list"></div>
+        </div>
+    </div>
+
+    <nav class="nav-bottom">
+        <div class="nav-item" id="nav-channels" onclick="showChannels()">
+            <i class="fas fa-tv"></i><span>القنوات</span>
+        </div>
+        <div class="nav-item active-nav" id="nav-home" onclick="showHome()">
+            <i class="fas fa-house"></i><span>الرئيسية</span>
+        </div>
+        <div class="nav-item" id="nav-series" onclick="showSeriesList()">
+            <i class="fas fa-clapperboard"></i><span>المسلسلات</span>
+       
+       </div>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>

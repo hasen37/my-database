@@ -1,0 +1,199 @@
+:root { 
+    --accent: #FFD700; 
+    --accent-glow: rgba(255, 215, 0, 0.3);
+    --bg: #050505; 
+    --card-bg: #121212;
+}
+
+body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; direction: rtl; overflow-x: hidden; }
+
+.screen { display: none; width: 100%; min-height: 100vh; padding-bottom: 90px; }
+.screen.active { display: block !important; }
+
+/* الهيدر والسايدبار */
+.header-main { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.95); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #1a1a1a; }
+.header-main i { color: var(--accent); font-size: 20px; }
+.sidebar { height: 100%; width: 0; position: fixed; z-index: 4000; top: 0; right: 0; background: #080808; transition: 0.3s; overflow-x: hidden; border-left: 1px solid #222; }
+.sidebar-links a { display: flex; align-items: center; padding: 18px 25px; color: #fff; text-decoration: none; border-bottom: 1px solid #111; gap: 15px; }
+
+/* تصميم السيرفرات الجديد */
+.servers-container { background: #0a0a0a; padding: 15px; border-bottom: 2px solid var(--accent); }
+.servers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+.server-btn { 
+    background: #151515; color: #fff; border: 1px solid #333; padding: 12px; border-radius: 8px; 
+    font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; 
+}
+.server-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* المشغل والحلقات */
+.video-container-modern { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 0; z-index: 3000; }
+#player-wrapper iframe { width: 100%; height: 100%; border: none; }
+.episode-card-new { display: flex; background: #121212; margin-bottom: 12px; border-radius: 14px; padding: 10px; align-items: center; gap: 12px; border: 1px solid #1a1a1a; }
+.ep-title-red { color: var(--accent); font-weight: bold; font-size: 15px; }
+
+/* البار السفلي */
+.nav-bottom { position: fixed; bottom: 0; width: 100%; background: rgba(8, 8, 8, 0.98); display: flex; justify-content: space-around; padding: 14px 0; z-index: 2000; border-top: 1px solid #1a1a1a; }
+.nav-item { color: #555; text-align: center; font-size: 11px; }
+.nav-item.active-nav { color: var(--accent); }
+
+/* الهيرو والشبكة */
+.hero-section { height: 400px; background-size: cover; background-position: center; position: relative; display: flex; align-items: flex-end; }
+.series-portrait-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 15px; }
+.portrait-card { position: relative; border-radius: 12px; overflow: hidden; background: #111; }
+.portrait-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+.section-label { margin: 20px 15px 10px; font-weight: bold; border-right: 4px solid var(--accent); padding-right: 12px; color: var(--accent); }
+:root { 
+    /* تغيير اللون الأساسي إلى الأصفر الذهبي الملكي */
+    --accent: #FFD700; 
+    --accent-glow: rgba(255, 215, 0, 0.3);
+    --bg: #050505; 
+    --card-bg: #121212;
+    --text-dim: #999;
+}
+
+body { 
+    margin: 0; padding: 0; 
+    background: var(--bg); 
+    color: #fff; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    direction: rtl; 
+    overflow-x: hidden; 
+}
+
+/* --- الشاشات وإدارة العرض --- */
+.screen { display: none; width: 100%; min-height: 100vh; background: var(--bg); padding-bottom: 90px; }
+.screen.active { display: block !important; }
+
+/* --- الهيدر (Header) --- */
+.header-main { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 15px 20px; background: rgba(0,0,0,0.95); 
+    position: sticky; top: 0; z-index: 1000;
+    border-bottom: 1px solid #1a1a1a;
+}
+.header-main i { color: var(--accent); font-size: 20px; }
+.screen-title { font-size: 18px; font-weight: bold; color: #fff; }
+
+/* --- شريط البحث (Search Overlay) --- */
+.search-overlay { 
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 70px; 
+    background: #000; z-index: 5000; align-items: center; padding: 0 20px; box-sizing: border-box; 
+}
+#search-input { 
+    flex: 1; background: #1a1a1a; border: 1px solid var(--accent); color: #fff; 
+    padding: 10px 15px; border-radius: 8px; outline: none; font-size: 16px;
+}
+.close-search { font-size: 25px; margin-right: 15px; cursor: pointer; color: var(--accent); }
+
+/* --- السايدبار (Sidebar) --- */
+.sidebar { height: 100%; width: 0; position: fixed; z-index: 4000; top: 0; right: 0; background: #080808; transition: 0.3s; overflow-x: hidden; border-left: 1px solid #222; }
+.sidebar-links a { display: flex; align-items: center; padding: 18px 25px; color: #fff; text-decoration: none; border-bottom: 1px solid #111; gap: 15px; }
+.sidebar-links a i { color: var(--accent); }
+.sidebar-header h2 { color: var(--accent); padding: 20px; font-size: 22px; text-align: center; border-bottom: 1px solid #222; }
+
+/* --- الهيرو الرئيسي (Main Hero) --- */
+#hero-display { 
+    
+    height: 400px; background-size: cover !important; background-position: center !important; 
+    position: relative; display: flex; align-items: flex-end; 
+}
+.hero-content { 
+    width: 100%; padding: 40px 20px; 
+    background: linear-gradient(transparent, var(--bg) 95%); text-align: center; 
+}
+#hero-title { font-size: 26px; font-weight: bold; margin-bottom: 15px; text-shadow: 2px 2px 10px rgba(0,0,0,1); color: #fff; }
+.btn-play { 
+    background: var(--accent); color: #000; border: none; padding: 12px 30px; 
+    border-radius: 30px; font-weight: 900; cursor: pointer; transition: 0.3s;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+.btn-play:hover { transform: scale(1.05); background: #fff; }
+
+/* --- شاشة المسلسلات الشبكية (Portrait Grid) --- */
+.series-portrait-grid { 
+    display: grid; grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; padding: 15px; 
+}
+.portrait-card { position: relative; border-radius: 12px; overflow: hidden; background: #111; border: 1px solid #1a1a1a; }
+.portrait-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+.portrait-card-title { 
+    position: absolute; bottom: 0; width: 100%; 
+    background: linear-gradient(transparent, rgba(0,0,0,0.95)); 
+    color: var(--accent); font-size: 11px; padding: 18px 5px 8px; text-align: center; font-weight: bold;
+}
+
+/* --- الفلاتر المتقدمة (Filter Chips) --- */
+.filter-container-advanced { display: flex; align-items: center; gap: 10px; padding: 10px 15px; overflow-x: auto; scrollbar-width: none; }
+.filter-main-btn { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+.chip-select { 
+    background: #151515; color: var(--accent); border: 1px solid #333; 
+    padding: 7px 12px; border-radius: 20px; font-size: 12px; outline: none; 
+}
+
+/* --- صفحة المسلسل (Series Page) --- */
+.series-hero-modern { height: 400px; background-size: cover !important; background-position: center top !important; position: relative; }
+.hero-overlay-gradient { 
+    width: 100%; height: 100%; 
+    background: linear-gradient(to top, var(--bg) 15%, rgba(5,5,5,0.3) 60%, transparent 100%); 
+    display: flex; align-items: flex-end; padding: 20px; box-sizing: border-box; 
+}
+.hero-main-content { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
+.floating-poster { 
+    width: 105px; height: 155px; border-radius: 12px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.9); border: 2px solid var(--accent); 
+}
+.series-badges { display: flex; gap: 8px; margin: 10px 0; }
+.series-badges span { background: rgba(255, 215, 0, 0.15); color: var(--accent); padding: 4px 12px; border-radius: 6px; font-size: 10px; border: 1px solid rgba(255, 215, 0, 0.2); }
+.badge-status { background: var(--accent) !important; color: #000 !important; font-weight: bold; }
+
+/* --- قائمة الحلقات العمودية --- */
+.episodes-column-list { padding: 0 15px; }
+.episode-card-new { 
+    display: flex; background: #121212; margin-bottom: 12px; 
+    border-radius: 14px; padding: 10px; align-items: center; gap: 12px; 
+    border: 1px solid #1a1a1a; transition: 0.2s;
+}
+.episode-card-new:active { background: #1a1a1a; transform: scale(0.98); }
+.ep-thumbnail { width: 115px; height: 68px; position: relative; border-radius: 10px; overflow: hidden; flex-shrink: 0; border: 1px solid #222; }
+.ep-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+.ep-thumbnail::after { 
+    content: '\f04b'; font-family: 'Font Awesome 5 Free'; font-weight: 900; 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    color: #000; background: var(--accent); 
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; 
+    border-radius: 50%; font-size: 10px; box-shadow: 0 0 10px var(--accent-glow);
+}
+.ep-title-red { color: var(--accent); font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+.ep-date { font-size: 10px; color: #777; }
+
+/* --- المشغل (Player) --- */
+.video-container-modern { width: 100%; background: #000; aspect-ratio: 16/9; position: sticky; top: 0; z-index: 3000; border-bottom: 2px solid var(--accent); }
+.close-player-modern { 
+    background: var(--accent); color: #000; padding: 8px 16px; 
+    border-radius: 6px; font-size: 13px; cursor: pointer; text-align: center; font-weight: bold;
+}
+
+/* --- البار السفلي (Bottom Nav) --- */
+.nav-bottom { 
+    position: fixed; bottom: 0; width: 100%; 
+    background: rgba(8, 8, 8, 0.98); backdrop-filter: blur(15px);
+    display: flex; justify-content: space-around; padding: 14px 0; 
+    z-index: 2000; border-top: 1px solid #1a1a1a; 
+}
+.nav-item { color: #555; text-align: center; font-size: 11px; cursor: pointer; transition: 0.3s; }
+.nav-item.active-nav { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+.nav-item i { display: block; font-size: 20px; margin-bottom: 5px; }
+
+/* --- الكروت في الرئيسية --- */
+.row { padding: 15px 0 15px 15px; }
+.row-header { display: flex; justify-content: space-between; align-items: center; padding-left: 20px; margin-bottom: 12px; }
+.row-title { font-weight: bold; font-size: 17px; border-right: 4px solid var(--accent); padding-right: 12px; color: #fff; }
+.row-cards { display: flex; overflow-x: auto; gap: 14px; scrollbar-width: none; }
+.card { min-width: 115px; text-align: center; }
+.card img { width: 115px; height: 165px; border-radius: 12px; object-fit: cover; border: 1px solid #1a1a1a; }
+.card-overlay { font-size: 12px; margin-top: 6px; color: #eee; font-weight: 500; }
+
+.section-label { margin: 25px 15px 12px; font-weight: bold; border-right: 4px solid var(--accent); padding-right: 12px; font-size: 17px; color: var(--accent); }
+
+/* تحسين شكل القصة */
+.description-text { padding: 0 15px; line-height: 1.6; color: #ccc; font-size: 14px; text-align: justify; }
