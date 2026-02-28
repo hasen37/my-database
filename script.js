@@ -1,55 +1,69 @@
 let globalDatabase = [];
-const BASE_URL = "api";
-const PROXY_URL = "http://127.0.0.1:5000/proxy?url=";
+// --- التعديل هنا: ضع رابط Firebase الخاص بك ---
+const FIREBASE_URL = "https://drama-2026-default-rtdb.firebaseio.com/series.json";
+// ----------------------------------------------
+
 let hlsInstance = null;
 let currentHeroIndex = 0;
 let heroInterval = null;
-let searchTimeout; // مؤقت لمنع اللاق في البحث
+let searchTimeout; 
 
-// 1. تحميل البيانات
+// 1. تحميل البيانات من Firebase
 async function loadData() {
     try {
-        const res = await fetch(`${BASE_URL}/series`);
+        const res = await fetch(FIREBASE_URL);
         const data = await res.json();
-        globalDatabase = data.map(item => ({
-            ...item,
-            category: item.category || "مميز صيف 2026",
-            country: item.country || "عام",
-            year: item.year || "2026"
-        }));
+        
+        // تحويل الكائن (Object) القادم من Firebase إلى مصفوفة (Array)
+        globalDatabase = data ? Object.keys(data).map(key => ({
+            ...data[key],
+            id: data[key].id || key, // استخدام الـ ID الأصلي أو مفتاح Firebase
+            category: data[key].category || "مميز صيف 2026",
+            country: data[key].country || "عام",
+            year: data[key].year || "2026"
+        })) : [];
+
         renderHome(globalDatabase);
         renderSeriesGrid(globalDatabase);
+        
         if (globalDatabase.length > 0) {
             updateHero(globalDatabase[0]);
             startHeroSlider();
+        } else {
+            // رسالة في حال كانت القاعدة فارغة
+            const heroTitle = document.getElementById('hero-title');
+            if (heroTitle) heroTitle.innerText = "أضف أول مسلسل من لوحة التحكم الآن!";
         }
-    } catch (e) { console.error("خطأ في الاتصال بالسيرفر"); }
+    } catch (e) { 
+        console.error("خطأ في الاتصال بـ Firebase:", e);
+        const heroTitle = document.getElementById('hero-title');
+        if (heroTitle) heroTitle.innerText = "فشل تحميل البيانات.. تأكد من اتصالك";
+    }
 }
 
-// 2. نظام البحث المطور (بدون لاق)
+// 2. نظام البحث المطور (بدون تغيير)
 function handleSearch() {
     const input = document.getElementById('search-input');
+    if (!input) return;
     const filter = input.value.toLowerCase();
 
-    // مسح المؤقت السابق - التقنية دي بتمنع اللاق لأنها بتنتظر المستخدم يخلص كتابة
     clearTimeout(searchTimeout);
-
     searchTimeout = setTimeout(() => {
         const filteredData = globalDatabase.filter(item => 
             item.name.toLowerCase().includes(filter)
         );
 
-        // طلب تحديث الواجهة في الإطار التالي لتحسين الأداء
         requestAnimationFrame(() => {
             renderHome(filteredData);
             renderSeriesGrid(filteredData);
         });
-    }, 250); // انتظار 250 مللي ثانية فقط
+    }, 250); 
 }
 
 function toggleSearch() { 
     const bar = document.getElementById('search-bar-container');
     const input = document.getElementById('search-input');
+    if (!bar || !input) return;
     const isVisible = bar.style.display === 'flex';
     
     if (!isVisible) {
@@ -63,7 +77,7 @@ function toggleSearch() {
     }
 }
 
-// 3. عرض الرئيسية (مع دعم الصور الذكي)
+// 3. عرض الرئيسية
 function renderHome(data) {
     const container = document.getElementById('rows-container');
     if (!container) return;
@@ -82,7 +96,7 @@ function renderHome(data) {
                 <div class="row-header"><div class="row-title">${cat}</div></div>
                 <div class="row-cards">
                     ${items.map(i => `
-                        <div class="card" onclick="openSeries(${i.id})">
+                        <div class="card" onclick="openSeries('${i.id}')">
                             <img src="${i.img}" loading="lazy">
                             <div class="card-overlay">${i.name}</div>
                         </div>
@@ -92,7 +106,7 @@ function renderHome(data) {
     });
 }
 
-// 4. شبكة المسلسلات (Portrait Grid)
+// 4. شبكة المسلسلات
 function renderSeriesGrid(data) {
     const grid = document.getElementById('series-grid-main');
     if (!grid) return;
@@ -103,7 +117,7 @@ function renderSeriesGrid(data) {
     }
 
     grid.innerHTML = data.map(i => `
-        <div class="portrait-card" onclick="openSeries(${i.id})">
+        <div class="portrait-card" onclick="openSeries('${i.id}')">
             <img src="${i.img}" loading="lazy">
             <div class="portrait-card-title">${i.name}</div>
         </div>
@@ -114,8 +128,8 @@ function renderSeriesGrid(data) {
 function startHeroSlider() {
     if (heroInterval) clearInterval(heroInterval);
     heroInterval = setInterval(() => {
-        if (globalDatabase.length > 5) {
-            currentHeroIndex = (currentHeroIndex + 1) % 5;
+        if (globalDatabase.length > 0) {
+            currentHeroIndex = (currentHeroIndex + 1) % Math.min(globalDatabase.length, 5);
             updateHero(globalDatabase[currentHeroIndex]);
         }
     }, 6000);
@@ -126,12 +140,13 @@ function updateHero(item) {
     const heroTitle = document.getElementById('hero-title');
     if (heroDisplay) heroDisplay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), #050505), url('${item.img}')`;
     if (heroTitle) heroTitle.innerText = item.name;
-    document.getElementById('hero-play-btn').onclick = () => openSeries(item.id);
+    const playBtn = document.getElementById('hero-play-btn');
+    if (playBtn) playBtn.onclick = () => openSeries(item.id);
 }
 
 // 6. فتح صفحة المسلسل والحلقات
 function openSeries(id) {
-    const s = globalDatabase.find(x => x.id === id);
+    const s = globalDatabase.find(x => x.id == id);
     if (!s) return;
     hideAllScreens();
     document.getElementById('screen-episodes').classList.add('active');
@@ -141,28 +156,32 @@ function openSeries(id) {
     document.getElementById('series-desc').innerText = s.desc || "لا يوجد وصف متوفر حالياً.";
 
     const epList = document.getElementById('episodes-list');
-    epList.innerHTML = s.eps.map((ep, index) => {
-        const linksData = encodeURIComponent(JSON.stringify(ep.link));
-        return `
-        <div class="episode-card-new" onclick="setupServers('${linksData}')">
-            <div class="ep-thumbnail"><img src="${s.img}" loading="lazy"></div>
-            <div class="ep-info">
-                <div class="ep-title-red">الحلقة ${index + 1}: ${ep.title}</div>
-                <div style="font-size:10px; color:#666;">سيرفرات متعددة</div>
-            </div>
-            <i class="fas fa-play-circle" style="margin-right:auto; color:var(--accent); font-size:22px;"></i>
-        </div>`;
-    }).join('');
+    if (s.eps && Array.isArray(s.eps)) {
+        epList.innerHTML = s.eps.map((ep, index) => {
+            const linksData = encodeURIComponent(JSON.stringify(ep.link));
+            return `
+            <div class="episode-card-new" onclick="setupServers('${linksData}')">
+                <div class="ep-thumbnail"><img src="${s.img}" loading="lazy"></div>
+                <div class="ep-info">
+                    <div class="ep-title-red">الحلقة ${index + 1}: ${ep.title}</div>
+                    <div style="font-size:10px; color:#666;">سيرفرات متعددة</div>
+                </div>
+                <i class="fas fa-play-circle" style="margin-right:auto; color:var(--accent); font-size:22px;"></i>
+            </div>`;
+        }).join('');
+    } else {
+        epList.innerHTML = `<p style="padding:20px; color:#666;">لا توجد حلقات متاحة.</p>`;
+    }
 }
 
-// 7. إعداد السيرفرات والمشغل
+// 7. إعداد السيرفرات والمشغل (بدون تغيير)
 function setupServers(linksData) {
     const links = JSON.parse(decodeURIComponent(linksData));
     const serversSection = document.getElementById('servers-section');
     const serversList = document.getElementById('servers-list');
     
     serversSection.style.display = 'block';
-    serversList.innerHTML = links.map((url, idx) => {
+    serversList.innerHTML = (Array.isArray(links) ? links : [links]).map((url, idx) => {
         let name = "سيرفر " + (idx + 1);
         if (url.includes('vidtube')) name = "VidTube Fast";
         if (url.includes('vk.com')) name = "VK High Speed";
@@ -171,7 +190,7 @@ function setupServers(linksData) {
                 </div>`;
     }).join('');
 
-    playVideo(links[0], serversList.firstElementChild);
+    playVideo(Array.isArray(links) ? links[0] : links, serversList.firstElementChild);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -201,7 +220,7 @@ function playVideo(url, btn) {
         if (url.includes('.m3u8')) {
             if (Hls.isSupported()) {
                 hlsInstance = new Hls();
-                hlsInstance.loadSource(url.startsWith('http') ? url : PROXY_URL + encodeURIComponent(url));
+                hlsInstance.loadSource(url);
                 hlsInstance.attachMedia(video);
                 hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play());
             }
@@ -229,11 +248,13 @@ function showSeriesList() {
 
 function hideAllScreens() { 
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
-    document.getElementById('sidebar').style.width = "0"; 
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.style.width = "0"; 
 }
 
 function toggleSidebar() { 
     const sb = document.getElementById('sidebar'); 
+    if (!sb) return;
     sb.style.width = sb.style.width === "280px" ? "0" : "280px"; 
 }
 
