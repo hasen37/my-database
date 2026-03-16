@@ -1,69 +1,55 @@
-let globalDatabase = [];
-// --- التعديل هنا: ضع رابط Firebase الخاص بك ---
-const FIREBASE_URL = "https://drama-2026-default-rtdb.firebaseio.com/series.json";
-// ----------------------------------------------
-
+ let globalDatabase = [];
+const BASE_URL = "api";
+const PROXY_URL = "http://127.0.0.1:5000/proxy?url=";
 let hlsInstance = null;
 let currentHeroIndex = 0;
 let heroInterval = null;
-let searchTimeout; 
+let searchTimeout; // مؤقت لمنع اللاق في البحث
 
-// 1. تحميل البيانات من Firebase
+// 1. تحميل البيانات
 async function loadData() {
     try {
-        const res = await fetch(FIREBASE_URL);
+        const res = await fetch(`${BASE_URL}/series`);
         const data = await res.json();
-        
-        // تحويل الكائن (Object) القادم من Firebase إلى مصفوفة (Array)
-        globalDatabase = data ? Object.keys(data).map(key => ({
-            ...data[key],
-            id: data[key].id || key, // استخدام الـ ID الأصلي أو مفتاح Firebase
-            category: data[key].category || "مميز صيف 2026",
-            country: data[key].country || "عام",
-            year: data[key].year || "2026"
-        })) : [];
-
+        globalDatabase = data.map(item => ({
+            ...item,
+            category: item.category || "مميز صيف 2026",
+            country: item.country || "عام",
+            year: item.year || "2026"
+        }));
         renderHome(globalDatabase);
         renderSeriesGrid(globalDatabase);
-        
         if (globalDatabase.length > 0) {
             updateHero(globalDatabase[0]);
             startHeroSlider();
-        } else {
-            // رسالة في حال كانت القاعدة فارغة
-            const heroTitle = document.getElementById('hero-title');
-            if (heroTitle) heroTitle.innerText = "أضف أول مسلسل من لوحة التحكم الآن!";
         }
-    } catch (e) { 
-        console.error("خطأ في الاتصال بـ Firebase:", e);
-        const heroTitle = document.getElementById('hero-title');
-        if (heroTitle) heroTitle.innerText = "فشل تحميل البيانات.. تأكد من اتصالك";
-    }
+    } catch (e) { console.error("خطأ في الاتصال بالسيرفر"); }
 }
 
-// 2. نظام البحث المطور (بدون تغيير)
+// 2. نظام البحث المطور (بدون لاق)
 function handleSearch() {
     const input = document.getElementById('search-input');
-    if (!input) return;
     const filter = input.value.toLowerCase();
 
+    // مسح المؤقت السابق - التقنية دي بتمنع اللاق لأنها بتنتظر المستخدم يخلص كتابة
     clearTimeout(searchTimeout);
+
     searchTimeout = setTimeout(() => {
         const filteredData = globalDatabase.filter(item => 
             item.name.toLowerCase().includes(filter)
         );
 
+        // طلب تحديث الواجهة في الإطار التالي لتحسين الأداء
         requestAnimationFrame(() => {
             renderHome(filteredData);
             renderSeriesGrid(filteredData);
         });
-    }, 250); 
+    }, 250); // انتظار 250 مللي ثانية فقط
 }
 
 function toggleSearch() { 
     const bar = document.getElementById('search-bar-container');
     const input = document.getElementById('search-input');
-    if (!bar || !input) return;
     const isVisible = bar.style.display === 'flex';
     
     if (!isVisible) {
@@ -77,7 +63,7 @@ function toggleSearch() {
     }
 }
 
-// 3. عرض الرئيسية
+// 3. عرض الرئيسية (مع دعم الصور الذكي)
 function renderHome(data) {
     const container = document.getElementById('rows-container');
     if (!container) return;
@@ -96,7 +82,7 @@ function renderHome(data) {
                 <div class="row-header"><div class="row-title">${cat}</div></div>
                 <div class="row-cards">
                     ${items.map(i => `
-                        <div class="card" onclick="openSeries('${i.id}')">
+                        <div class="card" onclick="openSeries(${i.id})">
                             <img src="${i.img}" loading="lazy">
                             <div class="card-overlay">${i.name}</div>
                         </div>
@@ -106,7 +92,7 @@ function renderHome(data) {
     });
 }
 
-// 4. شبكة المسلسلات
+// 4. شبكة المسلسلات (Portrait Grid)
 function renderSeriesGrid(data) {
     const grid = document.getElementById('series-grid-main');
     if (!grid) return;
@@ -117,7 +103,7 @@ function renderSeriesGrid(data) {
     }
 
     grid.innerHTML = data.map(i => `
-        <div class="portrait-card" onclick="openSeries('${i.id}')">
+        <div class="portrait-card" onclick="openSeries(${i.id})">
             <img src="${i.img}" loading="lazy">
             <div class="portrait-card-title">${i.name}</div>
         </div>
@@ -128,8 +114,8 @@ function renderSeriesGrid(data) {
 function startHeroSlider() {
     if (heroInterval) clearInterval(heroInterval);
     heroInterval = setInterval(() => {
-        if (globalDatabase.length > 0) {
-            currentHeroIndex = (currentHeroIndex + 1) % Math.min(globalDatabase.length, 5);
+        if (globalDatabase.length > 5) {
+            currentHeroIndex = (currentHeroIndex + 1) % 5;
             updateHero(globalDatabase[currentHeroIndex]);
         }
     }, 6000);
@@ -140,13 +126,12 @@ function updateHero(item) {
     const heroTitle = document.getElementById('hero-title');
     if (heroDisplay) heroDisplay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), #050505), url('${item.img}')`;
     if (heroTitle) heroTitle.innerText = item.name;
-    const playBtn = document.getElementById('hero-play-btn');
-    if (playBtn) playBtn.onclick = () => openSeries(item.id);
+    document.getElementById('hero-play-btn').onclick = () => openSeries(item.id);
 }
 
 // 6. فتح صفحة المسلسل والحلقات
 function openSeries(id) {
-    const s = globalDatabase.find(x => x.id == id);
+    const s = globalDatabase.find(x => x.id === id);
     if (!s) return;
     hideAllScreens();
     document.getElementById('screen-episodes').classList.add('active');
@@ -156,32 +141,28 @@ function openSeries(id) {
     document.getElementById('series-desc').innerText = s.desc || "لا يوجد وصف متوفر حالياً.";
 
     const epList = document.getElementById('episodes-list');
-    if (s.eps && Array.isArray(s.eps)) {
-        epList.innerHTML = s.eps.map((ep, index) => {
-            const linksData = encodeURIComponent(JSON.stringify(ep.link));
-            return `
-            <div class="episode-card-new" onclick="setupServers('${linksData}')">
-                <div class="ep-thumbnail"><img src="${s.img}" loading="lazy"></div>
-                <div class="ep-info">
-                    <div class="ep-title-red">الحلقة ${index + 1}: ${ep.title}</div>
-                    <div style="font-size:10px; color:#666;">سيرفرات متعددة</div>
-                </div>
-                <i class="fas fa-play-circle" style="margin-right:auto; color:var(--accent); font-size:22px;"></i>
-            </div>`;
-        }).join('');
-    } else {
-        epList.innerHTML = `<p style="padding:20px; color:#666;">لا توجد حلقات متاحة.</p>`;
-    }
+    epList.innerHTML = s.eps.map((ep, index) => {
+        const linksData = encodeURIComponent(JSON.stringify(ep.link));
+        return `
+        <div class="episode-card-new" onclick="setupServers('${linksData}')">
+            <div class="ep-thumbnail"><img src="${s.img}" loading="lazy"></div>
+            <div class="ep-info">
+                <div class="ep-title-red">الحلقة ${index + 1}: ${ep.title}</div>
+                <div style="font-size:10px; color:#666;">سيرفرات متعددة</div>
+            </div>
+            <i class="fas fa-play-circle" style="margin-right:auto; color:var(--accent); font-size:22px;"></i>
+        </div>`;
+    }).join('');
 }
 
-// 7. إعداد السيرفرات والمشغل (بدون تغيير)
+// 7. إعداد السيرفرات والمشغل
 function setupServers(linksData) {
     const links = JSON.parse(decodeURIComponent(linksData));
     const serversSection = document.getElementById('servers-section');
     const serversList = document.getElementById('servers-list');
     
     serversSection.style.display = 'block';
-    serversList.innerHTML = (Array.isArray(links) ? links : [links]).map((url, idx) => {
+    serversList.innerHTML = links.map((url, idx) => {
         let name = "سيرفر " + (idx + 1);
         if (url.includes('vidtube')) name = "VidTube Fast";
         if (url.includes('vk.com')) name = "VK High Speed";
@@ -190,31 +171,38 @@ function setupServers(linksData) {
                 </div>`;
     }).join('');
 
-    playVideo(Array.isArray(links) ? links[0] : links, serversList.firstElementChild);
+    playVideo(links[0], serversList.firstElementChild);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+ // استبدل دالة playVideo الحالية في ملف script.js بهذا الكود:
+
 function playVideo(url, btn) {
     const wrapper = document.getElementById('player-wrapper');
-    document.getElementById('video-container').style.display = 'block';
-    document.getElementById('close-player-btn').style.display = 'block';
+    const videoContainer = document.getElementById('video-container');
+    const closeBtn = document.getElementById('close-player-btn');
+    
+    videoContainer.style.display = 'block';
+    closeBtn.style.display = 'block';
     
     document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
     if(btn) btn.classList.add('active');
 
-    wrapper.innerHTML = "";
+    wrapper.innerHTML = ""; // تنظيف المشغل
     if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
 
-    if (url.includes('vk.com') || url.includes('video_ext') || url.includes('embed')) {
-        const ifrm = document.createElement("iframe");
-        ifrm.src = url;
-        ifrm.setAttribute("allowfullscreen", "true");
-        ifrm.setAttribute("allow", "autoplay; encrypted-media");
-        wrapper.appendChild(ifrm);
-    } else {
+    // فحص ذكي لنوع الرابط
+    const isDirectVideo = url.includes('.mp4') || url.includes('.m3u8') || url.includes('.webm');
+    const isIframe = url.startsWith('<iframe');
+
+    if (isDirectVideo) {
+        // إذا كان رابط فيديو مباشر (مثل Alooy TV)
         const video = document.createElement("video");
         video.controls = true;
+        video.autoplay = true;
         video.playsInline = true;
+        video.style.width = "100%";
+        video.style.height = "100%";
         wrapper.appendChild(video);
 
         if (url.includes('.m3u8')) {
@@ -222,12 +210,24 @@ function playVideo(url, btn) {
                 hlsInstance = new Hls();
                 hlsInstance.loadSource(url);
                 hlsInstance.attachMedia(video);
-                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play());
             }
         } else {
             video.src = url;
-            video.play();
         }
+    } else if (isIframe) {
+        // إذا كان الكود عبارة عن iframe كامل
+        wrapper.innerHTML = url;
+        const ifrm = wrapper.querySelector('iframe');
+        if(ifrm) { ifrm.style.width="100%"; ifrm.style.height="100%"; ifrm.frameBorder="0"; }
+    } else {
+        // إذا كان رابط موقع خارجي (مثل VK)
+        const ifrm = document.createElement("iframe");
+        ifrm.src = url;
+        ifrm.style.width = "100%";
+        ifrm.style.height = "100%";
+        ifrm.setAttribute("allowfullscreen", "true");
+        ifrm.frameBorder = "0";
+        wrapper.appendChild(ifrm);
     }
 }
 
@@ -248,13 +248,11 @@ function showSeriesList() {
 
 function hideAllScreens() { 
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) sidebar.style.width = "0"; 
+    document.getElementById('sidebar').style.width = "0"; 
 }
 
 function toggleSidebar() { 
     const sb = document.getElementById('sidebar'); 
-    if (!sb) return;
     sb.style.width = sb.style.width === "280px" ? "0" : "280px"; 
 }
 
