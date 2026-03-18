@@ -1,3 +1,50 @@
+  
+ #splash-screen {
+    background-color: #000 !important; /* يجبر الخلفية على السواد */
+}
+
+#splash-bg-animated {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    /* جرب هذا الرابط المباشر (انسخه كما هو) لنتأكد من العطل */
+    background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), 
+                      url('https://static.sayidaty.net/styles/1375_scale/public/2026-02/479274.jpg?VersionId=QG_knfTqy9LkXdySCwRPhtjeJ.xnpHhb') !important;
+    
+    background-size: cover !important;
+    background-repeat: repeat-x !important;
+    background-color: #000 !important; /* لضمان عدم ظهور اللون الأزرق */
+    animation: moveWall 40s linear infinite;
+    z-index: -1;
+}
+
+
+
+@keyframes moveWall {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+/* تنسيق النصوص والشعار */
+.splash-content { text-align: center; color: white; z-index: 10; }
+.splash-logo { width: 140px; margin-bottom: 20px; animation: pulse 2s infinite; }
+.ramadan-badge { border: 1px solid red; padding: 5px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 15px; display: inline-block; }
+.splash-title { font-size: 26px; margin: 10px 0; font-weight: bold; }
+
+/* نقاط التحميل النابضة */
+.loader-dots span {
+    display: inline-block; width: 10px; height: 10px;
+    background: red; border-radius: 50%; margin: 0 5px;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+.loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
 :root {
     --main-gold: #FFD700;
     --dark-bg: #050505;
@@ -21,11 +68,23 @@ body {
 .main-logo { font-size: 22px; font-weight: 800; color: #fff; }
 .main-logo span { color: var(--main-gold); }
 .menu-trigger, .search-trigger { font-size: 20px; color: var(--main-gold); cursor: pointer; }
+/* 1. ضبط الشاشات لضمان عدم التداخل */
+.screen {
+    display: none;
+    position: fixed; /* تغيير إلى ثابت لضمان ملء الشاشة */
+    top: 55px;      /* تحت الهيدر مباشرة */
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 55px); /* ملء المساحة المتبقية */
+    background: #050505; /* لون خلفية غامق لمنع الشفافية */
+    z-index: 1000;    /* فوق محتوى الرئيسية */
+    overflow-y: auto; /* السماح بالتمرير داخل الصفحة */
+    padding-bottom: 80px;
+}
 
-/* الشاشات */
-.screen { display: none; min-height: 100vh; padding-bottom: 80px; }
-.screen.active { display: block; animation: fadeIn 0.3s ease-in; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.screen.active {
+    display: block;
+}
 
 /* صفحة المشاهدة (ستايل AlooyTV) */
 .player-box { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 55px; z-index: 1500; }
@@ -68,19 +127,843 @@ body {
 .nav-tab.active { color: var(--main-gold); }
 
 /* الهيرو والشبكة */
-.hero-banner { height: 350px; background-size: cover; background-position: center; position: relative; }
-.hero-banner::after { content: ''; position: absolute; bottom: 0; width: 100%; height: 60%; background: linear-gradient(transparent, var(--dark-bg)); }
-.hero-info { position: absolute; bottom: 20px; width: 100%; text-align: center; z-index: 5; }
-.play-now-btn { background: var(--main-gold); border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; }
+/* تصميم الهيرو الاحترافي */
+.hero-banner {
+    height: 450px; /* زيادة الارتفاع ليعطي فخامة */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end; /* وضع المحتوى في الأسفل */
+    transition: background-image 0.8s ease-in-out; /* حركة ناعمة عند التغيير */
+}
 
-.grid-layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
-.row-cards { display: flex; overflow-x: auto; gap: 12px; padding: 10px 15px; scrollbar-width: none; }
-.card { min-width: 105px; position: relative; }
+/* التدرج الأسود السحري لبروز النص */
+.hero-banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top, var(--dark-bg) 10%, transparent 60%, rgba(0,0,0,0.4) 100%);
+    z-index: 1;
+}
+
+.hero-info {
+    position: relative;
+    z-index: 2; /* فوق التدرج الأسود */
+    padding: 20px;
+    width: 100%;
+    text-align: right; /* محاذاة لليمين لتناسب المحتوى العربي */
+}
+
+#hero-title {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+    color: #fff;
+    border-right: 5px solid var(--main-gold); /* علامة ذهبية بجانب العنوان */
+    padding-right: 15px;
+}
+
+/* زر المشاهدة الاحترافي */
+.play-now-btn {
+    background: var(--main-gold);
+    color: #000;
+    border: none;
+    padding: 12px 35px;
+    border-radius: 8px; /* زوايا أقل حدة */
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    transition: 0.3s;
+}
+
+.play-now-btn:active {
+    transform: scale(0.95);
+}
+
+
+/* تعديل شبكة عرض المسلسلات لتصبح صفين (عمودين) */
+.grid-layout {
+    display: grid;
+    /* جعلها عمودين متساويين دائماً على الجوال */
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px; /* المسافة بين الصور */
+    padding: 15px;
+}
+
+/* لضمان أن الصور تتناسب مع العمودين الجديدين */
+.grid-layout .card {
+    width: 100%; /* تأخذ كامل عرض العمود */
+    max-width: none; /* إلغاء أي تحديد عرض سابق */
+}
+
+.grid-layout .card img {
+    width: 100%;
+    height: auto; /* الحفاظ على أبعاد الصورة */
+    aspect-ratio: 2/3; /* شكل البوستر الاحترافي */
+    object-fit: cover;
+}
+
 .card img { width: 100%; aspect-ratio: 2/3; border-radius: 8px; object-fit: cover; }
 .card p { font-size: 11px; margin: 5px 0; text-align: center; white-space: nowrap; overflow: hidden; }
 
 /* البحث والسايدبار */
 .search-overlay { display: none; position: fixed; top: 0; width: 100%; height: 60px; background: #000; z-index: 4000; align-items: center; padding: 0 15px; }
 #search-input { flex: 1; background: #1a1a1a; border: 1px solid var(--main-gold); color: #fff; padding: 10px; border-radius: 5px; outline: none; }
-.sidebar-menu { position: fixed; right: -280px; top: 0; width: 280px; height: 100%; background: #0a0a0a; z-index: 5000; transition: 0.3s; padding: 20px; }
-.sidebar-menu.open { right: 0; }
+
+/* 2. إصلاح السايدبار (Sidebar) لمنع السواد الدائم */
+/* تأكد أن القائمة الجانبية مخفية تماماً خلف الشاشة */
+#sidebar {
+    position: fixed;
+    top: 0;
+    right: -100%; /* دفعها بالكامل خارج الرؤية */
+    width: 280px;
+    height: 100vh;
+    background: #111;
+    z-index: 9999;
+    transition: right 0.4s ease-in-out; /* حركة انسيابية */
+    box-shadow: none;
+}
+
+/* عند الفتح فقط تظهر الظلال */
+#sidebar.open {
+    right: 0;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.9);
+}
+
+/* 3. إصلاح شريط البحث */
+#search-bar-container {
+    display: none; /* مخفي افتراضياً */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #111;
+    z-index: 2000;
+    align-items: center;
+    padding: 0 15px;
+}
+ /* إزالة اللون الأزرق والخط السفلي من كل الروابط */
+a {
+    text-decoration: none;
+    color: inherit; /* تجعل الرابط يأخذ لون النص الذي قبله */
+    display: inline-block;
+}
+
+/* تنسيق روابط القائمة الجانبية بشكل خاص */
+#sidebar a {
+    color: #ffffff; /* لون أبيض */
+    padding: 12px 20px;
+    display: block;
+    border-bottom: 1px solid #222;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+#sidebar a:hover {
+    background: #ffc107; /* تغيير اللون عند مرور الماوس */
+    color: #000;
+}
+/* التحكم في زر الإغلاق X داخل السايدبار */
+.close-btn {
+    position: absolute;  /* يسمح لنا بتحريك الزر بحرية */
+    top: 15px;           /* المسافة من الأعلى */
+    left: 15px;          /* المسافة من اليسار (لأنه السايدبار يفتح من اليمين) */
+    font-size: 35px;     /* تكبير حجم الزر */
+    color: var(--main-gold); /* تلوينه باللون الذهبي الذي عرفته في الـ root */
+    cursor: pointer;
+    line-height: 1;
+    z-index: 10001;      /* التأكد أنه فوق كل شيء داخل السايدبار */
+    transition: 0.3s;
+}
+
+.close-btn:hover {
+    transform: scale(1.2); /* تكبير عند اللمس */
+    color: #fff;           /* يتحول للأبيض عند اللمس */
+}
+/* أيقونة النبض المباشر */
+.fa-tv {
+    position: relative;
+}
+
+.nav-tab.active, .sidebar-menu a:hover i {
+    text-shadow: 0 0 10px var(--main-gold);
+}
+
+/* إذا أردت إضافة علامة "Live" صغيرة بجانب الزر */
+.live-badge {
+    background: #cc0000;
+    color: white;
+    font-size: 8px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    margin-right: 5px;
+    vertical-align: middle;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+/* تنسيق خاص بصف القنوات في الصفحة الرئيسية */
+#rows-container .row:first-child .card img {
+    height: 100px; /* القنوات تكون أصغر من المسلسلات */
+    background: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.loading-text {
+    text-align: center;
+    padding: 50px;
+    color: var(--main-gold);
+    font-weight: bold;
+}
+/* تأكد من أن شبكة القنوات تظهر بشكل صحيح */
+#channels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 20px;
+}
+
+.channel-card {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #333;
+    transition: 0.3s;
+}
+
+.channel-card img {
+    width: 100%;
+    height: 60px;
+    object-fit: contain;
+}
+ /* تنسيق موحد لجميع الصور في البطاقات */
+.card img {
+    width: 100%;            /* تأخذ كامل عرض الحاوية */
+    height: 160px;          /* تحديد ارتفاع ثابت وموحد لكل الصور */
+    object-fit: cover;      /* أهم خاصية: لقص الصورة لتمتلئ المساحة دون تمطيط */
+    border-radius: 10px;    /* حواف مستديرة احترافية */
+    background: #1a1a1a;    /* لون خلفية في حال تأخر تحميل الصورة */
+    display: block;
+}
+
+/* تنسيق حاوية البطاقة لمنع التمدد */
+.card {
+    min-width: 110px;       /* عرض أدنى ثابت */
+    max-width: 120px;       /* عرض أقصى ثابت لضمان التناسق */
+    flex: 0 0 auto;         /* تمنع تمدد البطاقة داخل الصفوف */
+    overflow: hidden;
+}
+/* حاوية البطاقة */
+.card {
+    position: relative;
+    min-width: 140px;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+/* طبقة الظل المتدرج فوق الصورة */
+.card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    z-index: 1;
+}
+
+.card img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+}
+
+/* تفاصيل المسلسل فوق الصورة */
+.card-info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    z-index: 2;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--gray-text);
+}
+
+.rating-tag {
+    color: var(--main-gold);
+}
+ #search-results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important; /* فرض نظام العمودين */
+    gap: 12px !important; /* مسافة متناسقة بين الصور */
+    padding: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--gray-text);
+    margin-top: 50px;
+}
+/* تحسين شكل حاوية الحلقات */
+#episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* عرض 3 حلقات في الصف الواحد */
+    gap: 10px;
+    padding: 15px;
+}
+
+.ep-link {
+    background: #1a1a1a;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 12px 5px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.ep-link.active {
+    background: #ffc107; /* اللون الذهبي للحلقة المختارة */
+    color: #000;
+    border-color: #ffc107;
+}
+/* تنسيق كروت البحث لتكون مرتبة */
+#search-results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr); /* جعلها صفين كما في واجهة المسلسلات */
+    gap: 15px;
+    padding: 15px;
+}
+
+/* تنسيق شبكة نتائج البحث */
+#search-results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr); /* عرض صورتين في كل صف */
+    gap: 12px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#search-results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr); /* عمودين متساويين تماماً */
+    gap: 15px; /* المسافة بين الصور */
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box; /* لضمان عدم خروج المحتوى عن الشاشة */
+}
+
+
+
+ 
+.card {
+    background: #111;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* لضمان ملء العمود المخصص لها */
+    transition: transform 0.3s ease;
+}
+
+/* ضبط حجم الصورة داخل البطاقة */
+.card img {
+    width: 100%;
+    aspect-ratio: 2 / 3; /* القياس الذهبي للبوسترات */
+    object-fit: cover; /* لضمان عدم تمطط الصورة */
+    border-bottom: 1px solid #222;
+}
+
+/* تنسيق عنوان المسلسل تحت الصورة */
+.card-info {
+    padding: 8px 4px;
+    text-align: center;
+}
+
+.card-title {
+    font-size: 11px;
+    color: #fff;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 1; /* لإظهار سطر واحد فقط من الاسم */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+/* تصميم مستطيلات التحميل النابضة */
+.skeleton {
+    background: #1a1a1a;
+    background: linear-gradient(110deg, #121212 8%, #1a1a1a 18%, #121212 33%);
+    border-radius: 10px;
+    background-size: 200% 100%;
+    animation: skeleton-shine 1.5s linear infinite;
+}
+
+@keyframes skeleton-shine {
+    to { background-position-x: -200%; }
+}
+
+/* محاكاة شكل البوستر أثناء التحميل */
+.skeleton-card {
+    width: 100%;
+    aspect-ratio: 2/3;
+    margin-bottom: 10px;
+}
+/* شاشة التحميل الكاملة */
+#splash-screen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 999999; /* رقم عالي جداً لتغطية البار السفلي */
+    overflow: hidden;
+    transition: opacity 0.8s ease;
+    background: #000; /* لون احتياطي */
+}
+
+/* البوسترات المتحركة في الخلفية */
+#splash-bg-animated {
+    position: absolute;
+    top: 0; left: 0;
+    width: 200%; height: 100%;
+    /* رابط صورة البوسترات المجمعة */
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.9)), 
+                      url('https://i.ibb.co/vzPRmS8/ramadan-posters-bg.jpg');
+    background-size: cover;
+    background-repeat: repeat-x;
+    animation: moveBG 40s linear infinite;
+    z-index: -1;
+}
+
+@keyframes moveBG {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+/* أنيميشن النقاط الثلاث */
+.loader-dots span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #ff0000;
+    border-radius: 50%;
+    margin: 0 4px;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+.loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); } 
+    40% { transform: scale(1.0); }
+}
+
+/* شارة رمضان 2026 */
+.ramadan-badge {
+    border: 1px solid #FF0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+.hasen{color: var(--main-gold);
+    
+}/* تنسيق حاوية الحلقات لضمان ظهورها كشبكة مرتبة */
+#episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 حلقات في كل سطر */
+    gap: 10px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.ep-link {
+    background: #1a1a1a;
+    color: white;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.ep-link.active {
+    background: #ffc107; /* اللون الأصفر عند الاختيار */
+    color: black;
+    border-color: #ffc107;
+}
+
+/* لضمان عدم اختفاء الحلقات خلف المشغل */
+#screen-episodes {
+    padding-bottom: 100px; /* مساحة إضافية في الأسفل */
+    overflow-y: auto;
+}
+/* إصلاح شاشة المسلسلات لضمان ظهور كل شيء */
+#screen-episodes {
+    display: none;
+    padding-top: 10px;
+    padding-bottom: 100px;
+    background: #050505;
+}
+
+#screen-episodes.active {
+    display: block;
+}
+
+/* ضبط المشغل ليكون فوق ولكن لا يغطي المحتوى عند التمرير */
+.player-box {
+    width: 100%;
+    background: #000;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #1a1a1a;
+}
+
+/* تحسين شكل أزرار السيرفرات */
+.server-btn {
+    background: #222;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.server-btn.active {
+    background: #ffc107;
+    color: #000;
+    border-color: #ffc107;
+}
+
+/* شبكة الحلقات الاحترافية */
+.ep-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 حلقات في السطر */
+    gap: 10px;
+    padding: 10px 15px;
+}
+
+.ep-link {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 15px 5px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.ep-link.active {
+    background: #ffc107;
+    color: #000;
+}
+/* 1. الزوايا الدائرية والأنيميشن للبوسترات */
+.card {
+    position: relative;
+    border-radius: 15px; /* الزوايا الدائرية كما في التطبيقات العالمية */
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* حركة ارتدادية ناعمة */
+    background: #111;
+}
+
+.card:active {
+    transform: scale(0.92); /* تأثير الضغط عند اللمس */
+}
+
+/* 2. علامة عدد الحلقات السوداء فوق البوستر */
+.ep-count-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7); /* خلفية سوداء شفافة */
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 5;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px); /* تأثير زجاجي */
+}
+
+/* 3. أنيميشن ظهور العناصر بشكل تدريجي (Fade In) */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.row {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* 4. تنسيق زر "عرض الكل" بجانب اسم القسم */
+.row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    margin-top: 20px;
+}
+
+.row-title {
+    margin: 0;
+    color: var(--main-gold);
+    border-right: 4px solid var(--main-gold);
+    padding-right: 10px;
+    font-size: 17px;
+}
+
+.view-all-btn {
+    color: var(--gray-text);
+    font-size: 12px;
+    background: #1a1a1a;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+/* تنسيق ترويسة القسم لجعل العنوان والزر على خط واحد */
+.row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+/* تصميم زر عرض الكل الاحترافي */
+.view-all-btn {
+    background: rgba(255, 255, 255, 0.05); /* خلفية شفافة بسيطة */
+    color: #FFD700; /* لون ذهبي ليناسب شعار الموقع */
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 15px;
+    border-radius: 20px; /* شكل كبسولة */
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px; /* مسافة بين النص والسهم */
+    transition: all 0.3s ease;
+}
+
+/* حركات التفاعل (Hover) */
+.view-all-btn:hover {
+    background: #FFD700;
+    color: #000;
+    transform: translateX(-5px); /* يتحرك قليلاً لليمين عند التأشير */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.view-all-btn i {
+    font-size: 10px; /* حجم السهم */
+}
+/* تصميم الكارت الاحترافي */
+.card {
+    position: relative;
+    border-radius: 12px; /* زوايا دائرية ناعمة */
+    overflow: hidden;
+    background: #121212;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* حركة عند التفاعل */
+.card:active {
+    transform: scale(0.95);
+}
+
+/* الظل المتدرج فوق الصورة لبروز النص */
+.card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    z-index: 1;
+}
+
+.card img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+}
+
+/* تنسيق النصوص فوق البوستر */
+.card-info {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    left: 8px;
+    z-index: 2;
+    text-align: right;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    margin: 0;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    display: -webkit-box;
+    -webkit-line-clamp: 1; /* سطر واحد فقط للاسم */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* علامة عدد الحلقات الاحترافية */
+.ep-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(255, 215, 0, 0.9); /* لون ذهبي */
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 3;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+/* --- تصميم القسم العلوي (Hero Banner) الاحترافي --- */
+
+.hero-container {
+    position: relative;
+    width: 100%;
+    height: 80vh; /* يأخذ 80% من ارتفاع الشاشة ليعطي فخامة */
+    background-size: cover;
+    background-position: center top; /* التركيز على الجزء العلوي من الصورة */
+    background-repeat: no-repeat;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end; /* وضع المحتوى في الأسفل */
+    padding-bottom: 50px; /* مسافة من الأسفل */
+}
+
+/* التدرج الأسود السينمائي (أساس الاحترافية) */
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* تدرج من الأسود في الأسفل إلى الشفاف في الأعلى، مع سواد خفيف في الأعلى أيضاً لبروز الهيدر */
+    background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 30%, transparent 70%, rgba(0,0,0,0.3) 100%);
+    z-index: 1;
+}
+
+/* حاوية المحتوى */
+.hero-content {
+    position: relative;
+    z-index: 2; /* فوق التدرج */
+    max-width: 600px; /* تحديد عرض النص ليظل مقروءاً */
+    padding: 0 20px;
+    text-align: right; /* محاذاة لليمين */
+    color: white;
+}
+
+/* عنوان المسلسل */
+.hero-title {
+    font-size: 3rem; /* حجم كبير وواضح */
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.8); /* ظل خفيف للبروز */
+}
+
+/* الوصف */
+.hero-description {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    margin-bottom: 25px;
+    line-height: 1.6;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+}
+
+/* الأزرار */
+.hero-actions {
+    display: flex;
+    gap: 15px; /* مسافة بين الزرين */
+    justify-content: flex-start;
+}
+
+.hero-btn-play, .hero-btn-info {
+    padding: 12px 28px;
+    border-radius: 8px; /* زوايا منحنية ناعمة */
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease; /* حركة ناعمة عند التفاعل */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* زر "مشاهدة الآن" */
+.hero-btn-play {
+    background-color: #ff3b3b; /* أحمر جذاب */
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 59, 59, 0.4);
+}
+
+.hero-btn-play:hover {
+    background-color: #ff1a1a; /* أحمر أغمق عند التمرير */
+    transform: translateY(-2px); /* حركة للأعلى بسيطة */
+}
+
+/* زر "المزيد" */
+.hero-btn-info {
+    background-color: rgba(255, 255, 255, 0.1); /* شفاف خفيف */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px); /* تأثير زجاجي */
+}
+
+.hero-btn-info:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* أيقونات FontAwesome */
+.hero-actions i {
+    font-size: 0.9rem;
+}
