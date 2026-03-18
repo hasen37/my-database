@@ -1,107 +1,155 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hussein TV | عالم الدراما</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+   
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="main-header">
-        <div class="menu-trigger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
-        <div class="main-logo">Hussein <span>TV</span></div>
-        <div class="search-trigger" onclick="toggleSearch()"><i class="fas fa-search"></i></div>
-    </header>
-
-    <div id="search-bar-container" class="search-overlay">
-        <input type="text" id="search-input" placeholder="ابحث عن مسلسلك..." oninput="handleSearch()">
-        <div class="close-search" onclick="toggleSearch()">&times;</div>
+<div id="splash-screen">
+    <div id="splash-bg-animated"></div>
+    <div class="splash-content">
+        <div class="ramadan-badge">رمضان 2026 ●</div>
+        <img src="https://i.ibb.co/CsmfMgBL/Hussein-20260317-074901.jpg" alt="دراما رمضان">
+        <h1 class="splash-title">موقع Hussein <span>TV</span></h1>
+        <p class="splash-subtitle">شاهد وحمل أقوى المسلسلات العربية</p>
+        <div class="loader-dots"><span></span><span></span><span></span></div>
+        <p class="loading-text">جاري التحميل...</p>
     </div>
+</div>
 
-    <div id="sidebar" class="sidebar-menu">
-        <div class="sidebar-header">
-            <h3>Hussein TV</h3>
-            <span onclick="toggleSidebar()">&times;</span>
-        </div>
-        <nav>
-            <a href="#" onclick="showHome()"><i class="fas fa-home"></i> الرئيسية</a>
-            <a href="#" onclick="showSeriesList()"><i class="fas fa-film"></i> المسلسلات</a>
-            <a href="https://t.me/your_channel"><i class="fab fa-telegram"></i> تلغرام</a>
-        </nav>
+<header class="main-header">
+    <div class="menu-trigger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+    <div class="main-logo">Hussein <span>TV</span></div>
+    <div class="search-trigger" onclick="toggleSearch()"><i class="fas fa-search"></i></div>
+</header>
+
+<div id="search-bar-container" class="search-overlay">
+    <input type="text" id="search-input" placeholder="ابحث عن مسلسل أو قناة..." oninput="performSearch()">
+    <i class="fas fa-times close-search" onclick="clearSearch()"></i>
+</div>
+
+<div id="search-results-grid" class="grid-layout" style="display:none;"></div>
+
+<div id="sidebar" class="sidebar-menu">
+    <div class="sidebar-header">
+        <h3>Hussein TV</h3>
+        <span class="close-btn" onclick="toggleSidebar()">&times;</span>
     </div>
-
-    <main id="screen-home" class="screen active">
-        <div id="hero-display" class="hero-banner">
-            <div class="hero-info">
-                <h2 id="hero-title">تحميل...</h2>
-                <button class="play-now-btn" id="hero-play-btn"><i class="fas fa-play"></i> شاهد الآن</button>
-            </div>
-        </div>
-        <div id="rows-container"></div>
-    </main>
-
-    <div id="screen-series-list" class="screen">
-        <h2 class="section-title">جميع المسلسلات</h2>
-        <div id="series-grid-main" class="grid-layout"></div>
-    </div>
-
-    <div id="screen-episodes" class="screen">
-        <div id="video-container" class="player-box">
-            <div id="player-wrapper"></div>
-            <div class="player-controls">
-                <button onclick="closePlayer()" class="btn-close-v"><i class="fas fa-times"></i> إغلاق</button>
-                <button class="btn-download-v"><i class="fas fa-download"></i> تحميل</button>
-            </div>
-        </div>
-
-        <div id="servers-section" class="server-list" style="display:none;">
-            <p>اختر السيرفر:</p>
-            <div id="servers-list" class="server-btns"></div>
-        </div>
-
-        <div class="series-meta">
-            <div class="meta-poster">
-                <img id="series-poster-img" src="" alt="">
-            </div>
-            <div class="meta-details">
-                <h1 id="current-series-name">...</h1>
-                <div class="badges">
-                    <span class="year" id="series-year-tag">2026</span>
-                    <span class="quality">HD</span>
-                </div>
-                <div class="action-btns">
-                    <button class="fav-btn"><i class="far fa-heart"></i></button>
-                    <button class="share-btn"><i class="fas fa-share-alt"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <div class="episodes-container">
-            <h3 class="ep-label">الموسم الأول</h3>
-            <div id="episodes-grid" class="ep-grid"></div>
-        </div>
-
-        <div class="suggestions">
-            <h3 class="ep-label">قد يعجبك أيضاً</h3>
-            <div id="suggested-row" class="suggestion-scroll"></div>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-tab" onclick="window.open('https://t.me/your_channel')">
-            <i class="fab fa-telegram"></i><span>تواصل</span>
-        </div>
-        <div class="nav-tab active" id="nav-home" onclick="showHome()">
-            <i class="fas fa-home"></i><span>الرئيسية</span>
-        </div>
-        <div class="nav-tab" id="nav-series" onclick="showSeriesList()">
-            <i class="fas fa-th-large"></i><span>المسلسلات</span>
-        </div>
+    <nav>
+        <a href="#" onclick="showHome()"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="#" onclick="showSeriesList()"><i class="fas fa-film"></i> المسلسلات</a>
+        <a href="#" onclick="showChannelsScreen()"><i class="fas fa-tv"></i> قنوات TV</a> 
+        <a href="https://t.me/your_channel" target="_blank"><i class="fab fa-telegram"></i> تلغرام</a>
     </nav>
+</div>
 
-    <script src="script.js"></script>
+<div id="screen-channels" class="screen">
+    <h2 class="section-title">قنوات البث المباشر</h2>
+    <div id="channelsContainer" class="grid-layout"></div>
+</div>
+
+<main id="screen-home" class="screen active">
+    <div id="hero-section" class="hero-container">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">اسم المسلسل</h1>
+        <p class="hero-description">وصف قصير جداً للمسلسل لجذب الانتباه.</p>
+        <div class="hero-actions">
+            <button class="hero-btn-play">
+                <i class="fas fa-play"></i> مشاهدة الآن
+            </button>
+            <button class="hero-btn-info">
+                <i class="fas fa-info-circle"></i> المزيد
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div id="rows-container"></div>
+</main>
+
+<div id="screen-series-list" class="screen">
+    <h2 class="section-title">جميع المسلسلات</h2>
+    <div id="series-grid-main" class="grid-layout"></div>
+</div>
+    </div>
+</div>
+ <div id="screen-episodes" class="screen">
+    <div id="video-container" class="player-box" style="display:none;">
+        <div id="player-wrapper"></div>
+        <div class="player-controls">
+            <button onclick="closePlayer()" class="btn-close-v"><i class="fas fa-times"></i> إغلاق</button>
+            <button class="btn-download-v"><i class="fas fa-download"></i> تحميل</button>
+        </div>
+    </div>
+
+    <div class="series-meta">
+        <div class="meta-poster"><img id="series-poster-img" src=""></div>
+        <div class="meta-details">
+            <h1 id="current-series-name">...</h1>
+            <div class="badges">
+                <span class="year" id="series-year-tag">2026</span>
+                <span class="quality">HD</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="servers-section" style="display:none; padding:10px 15px;">
+        <p style="font-size:14px; color:#ffc107; margin-bottom:10px;">اختر السيرفر:</p>
+        <div id="servers-list" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+    </div>
+
+    <div class="episodes-container">
+        <h3 class="ep-label">الحلقات</h3>
+        <div id="episodes-grid" class="ep-grid"></div>
+    </div>
+</div>
+
+
+<nav class="bottom-nav">
+    <div class="nav-tab" onclick="window.open('https://t.me/your_channel', '_blank')">
+        <i class="fab fa-telegram"></i><span>تواصل</span>
+    </div>
+    <div class="nav-tab" id="nav-channels" onclick="showChannelsScreen()">
+        <i class="fas fa-tv"></i><span>قنوات TV</span>
+    </div>
+    <div class="nav-tab active" id="nav-home" onclick="showHome()">
+        <i class="fas fa-home"></i><span>الرئيسية</span>
+    </div>
+    <div class="nav-tab" id="nav-series" onclick="showSeriesList()">
+        <i class="fas fa-th-large"></i><span>المسلسلات</span>
+    </div>
+    <div class="nav-tab" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i><span>المزيد</span>
+    </div>
+</nav>
+
+<script src="script.js"></script>
+
+<script>
+// دالة الانتقال لشاشة القنوات
+function showChannelsScreen() {
+    hideAllScreens();
+    document.getElementById('screen-channels').classList.add('active');
+    updateNavActive('nav-channels');
+    loadChannels();
+    if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+}
+
+// دالة التوجيه لصفحة المشغل (live.html)
+function goToLive(url, name) {
+    if (url && url !== "undefined") {
+        window.location.href = `live.html?link=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+    } else {
+        alert("رابط القناة غير متوفر حالياً!");
+    }
+}
+</script>
+
 </body>
 </html>
