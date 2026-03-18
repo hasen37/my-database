@@ -1,226 +1,262 @@
- let globalDatabase = [];
-const BASE_URL = "api";
-const PROXY_URL = "http://127.0.0.1:5000/proxy?url=";
+/* Hussein TV | عالم الدراما 2026
+   المبرمج: حسين جميل
+   التعديل: دعم روابط elahmad والروابط الخارجية للقنوات بشكل كامل
+*/
+
+let globalDatabase = [];
+const BASE_URL = "https://drama-2026-default-rtdb.firebaseio.com/series.json";
+const CHANNELS_URL = "https://drama-2026-default-rtdb.firebaseio.com/channels.json";
+
 let hlsInstance = null;
 let currentHeroIndex = 0;
 let heroInterval = null;
-let searchTimeout; // مؤقت لمنع اللاق في البحث
+let searchTimeout;
 
-// 1. تحميل البيانات
+// 1. تحميل البيانات عند فتح الصفحة
+document.addEventListener('DOMContentLoaded', loadData);
+
 async function loadData() {
     try {
-        const res = await fetch(`${BASE_URL}/series`);
-        const data = await res.json();
+        const res = await fetch(BASE_URL);
+        const rawData = await res.json();
+        
+        let data = [];
+        if (rawData) {
+            data = Object.keys(rawData).map(key => ({
+                id: key, 
+                ...rawData[key]
+            }));
+        }
+
         globalDatabase = data.map(item => ({
             ...item,
-            category: item.category || "مميز صيف 2026",
-            country: item.country || "عام",
-            year: item.year || "2026"
+            category: item.category || "رمضان 2026",
+            name: item.name || "بدون اسم",
+            img: item.img || "https://via.placeholder.com/300x450?text=No+Image",
+            eps: item.eps || []
         }));
-        renderHome(globalDatabase);
-        renderSeriesGrid(globalDatabase);
+
+        // تشغيل الرئيسية فور التحميل
+        showHome();
+        
         if (globalDatabase.length > 0) {
             updateHero(globalDatabase[0]);
             startHeroSlider();
         }
-    } catch (e) { console.error("خطأ في الاتصال بالسيرفر"); }
-}
-
-// 2. نظام البحث المطور (بدون لاق)
-function handleSearch() {
-    const input = document.getElementById('search-input');
-    const filter = input.value.toLowerCase();
-
-    // مسح المؤقت السابق - التقنية دي بتمنع اللاق لأنها بتنتظر المستخدم يخلص كتابة
-    clearTimeout(searchTimeout);
-
-    searchTimeout = setTimeout(() => {
-        const filteredData = globalDatabase.filter(item => 
-            item.name.toLowerCase().includes(filter)
-        );
-
-        // طلب تحديث الواجهة في الإطار التالي لتحسين الأداء
-        requestAnimationFrame(() => {
-            renderHome(filteredData);
-            renderSeriesGrid(filteredData);
-        });
-    }, 250); // انتظار 250 مللي ثانية فقط
-}
-
-function toggleSearch() { 
-    const bar = document.getElementById('search-bar-container');
-    const input = document.getElementById('search-input');
-    const isVisible = bar.style.display === 'flex';
-    
-    if (!isVisible) {
-        bar.style.display = 'flex';
-        input.focus();
-    } else {
-        bar.style.display = 'none';
-        input.value = "";
-        renderHome(globalDatabase);
-        renderSeriesGrid(globalDatabase);
+        hideSplashScreen();
+    } catch (e) { 
+        console.error("فشل في جلب البيانات:", e); 
+        hideSplashScreen();
     }
 }
 
-// 3. عرض الرئيسية (مع دعم الصور الذكي)
-function renderHome(data) {
+// 2. دالة الصفحة الرئيسية (تجمع القنوات والمسلسلات)
+async function showHome() {
+    hideAllScreens();
+    const homeScreen = document.getElementById('screen-home');
+    homeScreen.classList.add('active');
+    updateNavActive('nav-home');
+
+    homeScreen.innerHTML = `
+        <div id="hero-display" class="hero-banner">
+            <div class="hero-info">
+                <h1 id="hero-title">جاري التحميل...</h1>
+                <button id="hero-play-btn" class="play-now-btn">مشاهدة الآن</button>
+            </div>
+        </div>
+        <div id="rows-container"></div>
+    `;
+
+    if (globalDatabase.length > 0) updateHero(globalDatabase[currentHeroIndex]);
+
+    // جلب القنوات أولاً
+    await renderChannelsInHome();
+    
+    // ثم عرض المسلسلات
+    if (globalDatabase.length > 0) {
+        renderHomeRows(globalDatabase);
+    }
+}
+
+// 3. جلب القنوات كـ "صف" في الرئيسية
+async function renderChannelsInHome() {
+    try {
+        const res = await fetch(CHANNELS_URL);
+        const channelsData = await res.json();
+        
+        if (channelsData) {
+            const container = document.getElementById('rows-container');
+            let html = `
+                <div class="row">
+                    <div class="row-header">
+                        <h3 class="row-title">البث المباشر</h3>
+                        <div class="view-all-btn" onclick="showChannelsScreen()">عرض الكل <i class="fas fa-chevron-left"></i></div>
+                    </div>
+                    <div class="row-cards" style="display: flex; overflow-x: auto; gap: 12px; padding: 15px;">
+            `;
+            
+            Object.keys(channelsData).forEach(key => {
+                const ch = channelsData[key];
+                html += `
+                    <div class="card" onclick="goToLive('${ch.link}', '${ch.name}')" style="min-width: 100px; text-align:center; cursor:pointer; background:#111; padding:10px;">
+                        <img src="${ch.img || 'https://via.placeholder.com/100'}" style="width:100%; height:80px; object-fit:contain; border-radius:10px;">
+                        <p style="font-size:11px; margin-top:8px; color:#fff;">${ch.name}</p>
+                    </div>
+                `;
+            });
+            
+            html += `</div></div>`;
+            container.innerHTML = html; 
+        }
+    } catch (e) { console.error("خطأ في القنوات"); }
+}
+
+// 4. عرض صفوف المسلسلات في الرئيسية
+function renderHomeRows(data) {
     const container = document.getElementById('rows-container');
-    if (!container) return;
-    
-    if (data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:50px; color:#555;">لا توجد نتائج بحث...</div>`;
-        return;
-    }
-
-    container.innerHTML = "";
     const categories = [...new Set(data.map(i => i.category))];
+    
     categories.forEach(cat => {
         const items = data.filter(i => i.category === cat);
         container.innerHTML += `
             <div class="row">
-                <div class="row-header"><div class="row-title">${cat}</div></div>
-                <div class="row-cards">
-                    ${items.map(i => `
-                        <div class="card" onclick="openSeries(${i.id})">
-                            <img src="${i.img}" loading="lazy">
-                            <div class="card-overlay">${i.name}</div>
-                        </div>
-                    `).join('')}
+                <div class="row-header">
+                    <h3 class="row-title">${cat}</h3>
+                    <div class="view-all-btn" onclick="showSeriesList()">عرض الكل <i class="fas fa-chevron-left"></i></div>
+                </div>
+                <div class="row-cards" style="display: flex; overflow-x: auto; gap: 12px; padding: 15px;">
+                    ${items.map(i => {
+                        // حساب عدد الحلقات
+                        const epCount = i.eps ? i.eps.length : 0;
+                        return `
+                        <div class="card" onclick="openSeries('${i.id}')" style="min-width: 120px; cursor:pointer;">
+                            ${epCount > 0 ? `<div class="ep-count-badge">${epCount} حلقة</div>` : ''}
+                            <img src="${i.img}" style="width:100%; aspect-ratio:2/3; border-radius:12px; object-fit:cover;">
+                            <div class="card-info">
+                                <p class="card-title">${i.name}</p>
+                            </div>
+                        </div>`;
+                    }).join('')}
                 </div>
             </div>`;
     });
 }
 
-// 4. شبكة المسلسلات (Portrait Grid)
-function renderSeriesGrid(data) {
-    const grid = document.getElementById('series-grid-main');
-    if (!grid) return;
-    
-    if (data.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#555;">لا يوجد نتائج</div>`;
-        return;
-    }
+// 5. شاشة القنوات المستقلة
+async function loadChannels() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
 
-    grid.innerHTML = data.map(i => `
-        <div class="portrait-card" onclick="openSeries(${i.id})">
-            <img src="${i.img}" loading="lazy">
-            <div class="portrait-card-title">${i.name}</div>
-        </div>
-    `).join('');
-}
-
-// 5. السلايدر (Hero)
-function startHeroSlider() {
-    if (heroInterval) clearInterval(heroInterval);
-    heroInterval = setInterval(() => {
-        if (globalDatabase.length > 5) {
-            currentHeroIndex = (currentHeroIndex + 1) % 5;
-            updateHero(globalDatabase[currentHeroIndex]);
-        }
-    }, 6000);
-}
-
-function updateHero(item) {
-    const heroDisplay = document.getElementById('hero-display');
-    const heroTitle = document.getElementById('hero-title');
-    if (heroDisplay) heroDisplay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), #050505), url('${item.img}')`;
-    if (heroTitle) heroTitle.innerText = item.name;
-    document.getElementById('hero-play-btn').onclick = () => openSeries(item.id);
-}
-
-// 6. فتح صفحة المسلسل والحلقات
-function openSeries(id) {
-    const s = globalDatabase.find(x => x.id === id);
-    if (!s) return;
     hideAllScreens();
-    document.getElementById('screen-episodes').classList.add('active');
-    document.getElementById('series-poster-img').src = s.img;
-    document.getElementById('series-hero-bg').style.backgroundImage = `url('${s.img}')`;
-    document.getElementById('current-series-name').innerText = s.name;
-    document.getElementById('series-desc').innerText = s.desc || "لا يوجد وصف متوفر حالياً.";
-
-    const epList = document.getElementById('episodes-list');
-    epList.innerHTML = s.eps.map((ep, index) => {
-        const linksData = encodeURIComponent(JSON.stringify(ep.link));
-        return `
-        <div class="episode-card-new" onclick="setupServers('${linksData}')">
-            <div class="ep-thumbnail"><img src="${s.img}" loading="lazy"></div>
-            <div class="ep-info">
-                <div class="ep-title-red">الحلقة ${index + 1}: ${ep.title}</div>
-                <div style="font-size:10px; color:#666;">سيرفرات متعددة</div>
-            </div>
-            <i class="fas fa-play-circle" style="margin-right:auto; color:var(--accent); font-size:22px;"></i>
-        </div>`;
-    }).join('');
-}
-
-// 7. إعداد السيرفرات والمشغل
-function setupServers(linksData) {
-    const links = JSON.parse(decodeURIComponent(linksData));
-    const serversSection = document.getElementById('servers-section');
-    const serversList = document.getElementById('servers-list');
     
-    serversSection.style.display = 'block';
-    serversList.innerHTML = links.map((url, idx) => {
-        let name = "سيرفر " + (idx + 1);
-        if (url.includes('vidtube')) name = "VidTube Fast";
-        if (url.includes('vk.com')) name = "VK High Speed";
-        return `<div class="server-btn" onclick="playVideo('${url}', this)">
-                    <span>${name}</span> <i class="fas fa-play"></i>
-                </div>`;
-    }).join('');
-
-    playVideo(links[0], serversList.firstElementChild);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const screen = document.getElementById('screen-channels') || document.getElementById('screen-home');
+    screen.classList.add('active');
+    updateNavActive('nav-channels');
+    
+    screen.innerHTML = '<h3 class="row-title" style="margin:20px;">كل القنوات</h3><div id="channels-grid" class="grid-layout" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; padding:15px;"></div>';
+    
+    const grid = document.getElementById('channels-grid');
+    try {
+        const res = await fetch(CHANNELS_URL);
+        const data = await res.json();
+        if (data) {
+            grid.innerHTML = Object.keys(data).map(key => `
+                <div class="channel-card" onclick="goToLive('${data[key].link}', '${data[key].name}')" style="background:#1a1a1a; padding:10px; border-radius:8px; text-align:center; cursor:pointer;">
+                    <img src="${data[key].img || ''}" style="width:50px; height:50px; object-fit:contain;">
+                    <p style="font-size:12px; margin-top:5px;">${data[key].name}</p>
+                </div>
+            `).join('');
+        }
+    } catch (e) { grid.innerHTML = "خطأ في التحميل"; }
 }
 
- // استبدل دالة playVideo الحالية في ملف script.js بهذا الكود:
+// دالة التوجيه لصفحة live.html (التعديل لدعم روابط الأحمد والروابط المباشرة)
+function goToLive(url, name) {
+    if (url && url !== "undefined") {
+        // نرسل الرابط كما هو لصفحة live.html وهي ستحدد نوع المشغل
+        window.open(url, '_blank');
+
+        window.location.href = `live.html?link=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+        
+    } else {
+        alert("رابط القناة غير متوفر حالياً!");
+    }
+}
+
+// 6. نظام المسلسلات والحلقات
+function openSeries(id) {
+    const s = globalDatabase.find(x => x.id == id);
+    if (!s) return;
+
+    hideAllScreens();
+    const epScreen = document.getElementById('screen-episodes');
+    epScreen.classList.add('active');
+    
+    // تأكد من أن البوستر والاسم يظهران بوضوح
+    document.getElementById('series-poster-img').src = s.img;
+    document.getElementById('current-series-name').innerText = s.name;
+    
+    const epGrid = document.getElementById('episodes-grid');
+    if(epGrid) {
+        if (s.eps && s.eps.length > 0) {
+            epGrid.innerHTML = s.eps.map((ep, index) => {
+                const linksData = encodeURIComponent(JSON.stringify(ep.link));
+                return `<button class="ep-link" id="ep-${index}" onclick="setupServers('${linksData}', ${index})">الحلقة ${index + 1}</button>`;
+            }).join('');
+        } else {
+            epGrid.innerHTML = "<p style='color:gray; padding:20px; grid-column: 1/-1; text-align:center;'>قريباً...</p>";
+        }
+    }
+    // إخفاء منطقة السيرفرات والمشغل عند فتح مسلسل جديد حتى يتم اختيار حلقة
+    if(document.getElementById('servers-section')) document.getElementById('servers-section').style.display = 'none';
+    if(document.getElementById('video-container')) document.getElementById('video-container').style.display = 'none';
+    
+    window.scrollTo(0,0);
+}
+
+
+function setupServers(linksData, epIndex) {
+    const links = JSON.parse(decodeURIComponent(linksData));
+    const sSection = document.getElementById('servers-section');
+    const sList = document.getElementById('servers-list');
+    
+    document.querySelectorAll('.ep-link').forEach(b => b.classList.remove('active'));
+    document.getElementById(`ep-${epIndex}`)?.classList.add('active');
+
+    if(sSection) sSection.style.display = 'block';
+    if(sList) {
+        sList.innerHTML = links.map((url, idx) => `
+            <button class="server-btn" onclick="playVideo('${url}', this)">سيرفر ${idx + 1}</button>
+        `).join('');
+        playVideo(links[0], sList.firstElementChild);
+    }
+}
 
 function playVideo(url, btn) {
     const wrapper = document.getElementById('player-wrapper');
-    const videoContainer = document.getElementById('video-container');
-    const closeBtn = document.getElementById('close-player-btn');
+    const vContainer = document.getElementById('video-container');
+    vContainer.style.display = 'block';
     
-    videoContainer.style.display = 'block';
-    closeBtn.style.display = 'block';
-    
-    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
-    if(btn) btn.classList.add('active');
+    wrapper.innerHTML = ""; // تنظيف المشغل القديم
 
-    wrapper.innerHTML = ""; // تنظيف المشغل
-    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-
-    // فحص ذكي لنوع الرابط
-    const isDirectVideo = url.includes('.mp4') || url.includes('.m3u8') || url.includes('.webm');
-    const isIframe = url.startsWith('<iframe');
-
-    if (isDirectVideo) {
-        // إذا كان رابط فيديو مباشر (مثل Alooy TV)
+    // إذا كان الرابط m3u8 (أغلب القنوات)
+    if (url.includes('.m3u8')) {
         const video = document.createElement("video");
         video.controls = true;
         video.autoplay = true;
-        video.playsInline = true;
         video.style.width = "100%";
-        video.style.height = "100%";
         wrapper.appendChild(video);
 
-        if (url.includes('.m3u8')) {
-            if (Hls.isSupported()) {
-                hlsInstance = new Hls();
-                hlsInstance.loadSource(url);
-                hlsInstance.attachMedia(video);
-            }
-        } else {
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = url;
         }
-    } else if (isIframe) {
-        // إذا كان الكود عبارة عن iframe كامل
-        wrapper.innerHTML = url;
-        const ifrm = wrapper.querySelector('iframe');
-        if(ifrm) { ifrm.style.width="100%"; ifrm.style.height="100%"; ifrm.frameBorder="0"; }
-    } else {
-        // إذا كان رابط موقع خارجي (مثل VK)
+    } 
+    // إذا كان الرابط عبارة عن صفحة ويب (Embed) مثل روابط الأحمد
+    else {
         const ifrm = document.createElement("iframe");
         ifrm.src = url;
         ifrm.style.width = "100%";
@@ -231,43 +267,146 @@ function playVideo(url, btn) {
     }
 }
 
-// 8. وظائف التنقل العامة
-function showHome() { 
-    hideAllScreens(); 
-    document.getElementById('screen-home').classList.add('active'); 
-    updateNavActive('nav-home'); 
-    closePlayer(); 
+
+// 7. البحث والوظائف المساعدة
+function showSeriesList() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
+    
+    hideAllScreens();
+    const seriesScreen = document.getElementById('screen-series-list');
+    if (seriesScreen) {
+        seriesScreen.classList.add('active');
+        updateNavActive('nav-series');
+        const grid = document.getElementById('series-grid-main');
+        if (grid) {
+            grid.innerHTML = globalDatabase.map(i => `
+                <div class="card" onclick="openSeries('${i.id}')">
+                    <img src="${i.img}" loading="lazy">
+                    <p>${i.name}</p>
+                </div>`).join('');
+        }
+    }
 }
 
-function showSeriesList() { 
-    hideAllScreens(); 
-    document.getElementById('screen-series-list').classList.add('active'); 
-    updateNavActive('nav-series'); 
-    renderSeriesGrid(globalDatabase); 
+function updateHero(item) {
+    const heroDisplay = document.getElementById('hero-display');
+    if (heroDisplay) heroDisplay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), #050505), url('${item.img}')`;
+    const title = document.getElementById('hero-title');
+    if(title) title.innerText = item.name;
+    const playBtn = document.getElementById('hero-play-btn');
+    if(playBtn) playBtn.onclick = () => openSeries(item.id);
 }
 
-function hideAllScreens() { 
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
-    document.getElementById('sidebar').style.width = "0"; 
+function startHeroSlider() {
+    if (heroInterval) clearInterval(heroInterval);
+    heroInterval = setInterval(() => {
+        if (globalDatabase.length > 0) {
+            currentHeroIndex = (currentHeroIndex + 1) % Math.min(globalDatabase.length, 5);
+            updateHero(globalDatabase[currentHeroIndex]);
+        }
+    }, 6000);
 }
 
-function toggleSidebar() { 
-    const sb = document.getElementById('sidebar'); 
-    sb.style.width = sb.style.width === "280px" ? "0" : "280px"; 
+function hideAllScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); }
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function toggleSearch() { 
+    const bar = document.getElementById('search-bar-container');
+    bar.style.display = bar.style.display === 'flex' ? 'none' : 'flex';
 }
-
 function closePlayer() { 
-    document.getElementById('video-container').style.display = 'none'; 
-    document.getElementById('servers-section').style.display = 'none'; 
-    document.getElementById('close-player-btn').style.display = 'none';
+    if(document.getElementById('video-container')) document.getElementById('video-container').style.display = 'none';
     document.getElementById('player-wrapper').innerHTML = "";
     if (hlsInstance) hlsInstance.destroy();
 }
-
 function updateNavActive(id) { 
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav')); 
-    const activeItem = document.getElementById(id);
-    if(activeItem) activeItem.classList.add('active-nav'); 
+    document.querySelectorAll('.nav-tab').forEach(i => i.classList.remove('active')); 
+    document.getElementById(id)?.classList.add('active'); 
 }
 
-document.addEventListener('DOMContentLoaded', loadData);
+async function performSearch() {
+    const query = document.getElementById('search-input').value.toLowerCase().trim();
+    const resultsContainer = document.getElementById('search-results-grid');
+    const homeContent = document.getElementById('screen-home');
+
+    if (query === "") {
+        if(resultsContainer) resultsContainer.style.display = 'none';
+        if(homeContent) homeContent.style.display = 'block';
+        return;
+    }
+
+    if(homeContent) homeContent.style.display = 'none';
+    if(resultsContainer) {
+        resultsContainer.style.display = 'grid';
+        resultsContainer.innerHTML = '<p style="text-align:center; grid-column:1/-1;">جاري البحث...</p>';
+    }
+
+    try {
+        const res = await fetch(CHANNELS_URL);
+        const channelsData = await res.json() || {};
+        const channelsArray = Object.keys(channelsData).map(key => ({
+            id: key,
+            ...channelsData[key],
+            type: 'channel'
+        }));
+
+        const filteredSeries = globalDatabase.filter(s => s.name.toLowerCase().includes(query));
+        const filteredChannels = channelsArray.filter(c => c.name.toLowerCase().includes(query));
+
+        const allResults = [...filteredSeries, ...filteredChannels];
+
+        if (allResults.length === 0) {
+            resultsContainer.innerHTML = `<p style="text-align:center; grid-column:1/-1; padding:20px;">لا توجد نتائج لـ "${query}"</p>`;
+        } else {
+            resultsContainer.innerHTML = allResults.map(item => `
+                <div class="card" onclick="${item.type === 'channel' ? `goToLive('${item.link}', '${item.name}')` : `openSeries('${item.id}')`}" style="cursor:pointer;">
+                    <img src="${item.img || item.logo}" style="width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px;">
+                    <div class="card-info">
+                        <span class="card-title">${item.name}</span>
+                        <span class="rating-tag">${item.type === 'channel' ? 'بث مباشر' : 'مسلسل'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (e) {
+        resultsContainer.innerHTML = "حدث خطأ أثناء البحث";
+    }
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('search-input');
+    const resultsContainer = document.getElementById('search-results-grid');
+    const homeContent = document.getElementById('screen-home');
+
+    searchInput.value = ""; 
+    resultsContainer.style.display = 'none'; 
+    homeContent.style.display = 'block'; 
+    
+    const bar = document.getElementById('search-bar-container');
+    if(bar) bar.style.display = 'none';
+}
+
+function hideSplashScreen() {
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        splash.style.opacity = '0'; 
+        setTimeout(() => {
+            splash.style.display = 'none'; 
+        }, 800); 
+    }
+}
+// مثال بسيط لكيفية بناء الكارت داخل الجافاسكريبت ليطابق الـ CSS الجديد
+function createCard(item) {
+    return `
+        <div class="card" onclick="openDetails('${item.id}')">
+            <div class="ep-badge-oscar">
+                <i class="fas fa-play" style="font-size: 8px;"></i>
+                ${item.episode_count || '30'}
+            </div>
+            <img src="${item.poster}" alt="${item.title}">
+            <div class="card-info">
+                <h3 class="card-title">${item.title}</h3>
+            </div>
+        </div>
+    `;
+}
