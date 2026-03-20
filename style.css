@@ -1026,3 +1026,37 @@ a {
     height: 200px; /* ارتفاع ثابت للصور لتوحيد الشكل */
     object-fit: cover; /* لضمان عدم تشوه الصورة */
 }
+/* الحاوية الرئيسية للموقع */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    height: auto; /* السماح للطول بالتمدد حسب المحتوى */
+    overflow-y: visible; 
+}
+
+/* تنسيق أقسام المسلسلات */
+.section {
+    width: 100%;
+    margin-bottom: 30px; /* مسافة كافية للنزول */
+    position: relative; /* لضمان بقاء العناصر داخل تدفق الصفحة */
+}
+.movie-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.movie-title {
+    width: 100%;
+    text-align: center;
+    padding: 5px 0;
+    font-size: 14px;
+    color: white;
+    /* لضمان عدم اختفاء النص إذا كان طويلاً */
+    white-space: normal; 
+    overflow: visible;
+}
+body {
+    padding-bottom: 80px; /* مساحة تساوي ارتفاع الشريط السفلي تقريباً */
+}
