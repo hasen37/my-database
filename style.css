@@ -967,3 +967,62 @@ a {
 .hero-actions i {
     font-size: 0.9rem;
 }
+.section-header {
+    display: flex; /* تفعيل نظام الـ Flexbox */
+    justify-content: space-between; /* دفع العنوان لليمين والزر لليسار */
+    align-items: center; /* موازنة العناصر عمودياً */
+    flex-direction: row-reverse; /* لضمان الترتيب الصحيح من اليمين لليسار */
+    padding: 10px;
+}
+.section-header {
+    display: flex; /* تفعيل نظام الصفوف المرنة */
+    justify-content: space-between; /* توزيع العناصر على الأطراف */
+    align-items: center; /* محاذاة العناصر عمودياً في المنتصف */
+    padding: 15px 10px; /* مسافة داخلية لعدم التصاق العناصر بالحافة */
+    width: 100%; /* التأكد من استغلال كامل عرض الشاشة */
+}
+
+.section-title {
+    font-size: 18px;
+    color: #ffcc00; /* اللون الذهبي الذي تستخدمه */
+    margin: 0;
+    border-right: 4px solid #ffcc00; /* الخط العمودي بجانب العنوان */
+    padding-right: 10px;
+}
+
+.view-all {
+    color: #ffcc00;
+    text-decoration: none;
+    font-size: 14px;
+    border: 1px solid #333; /* الإطار المحيط بالزر */
+    padding: 5px 15px;
+    border-radius: 20px; /* جعل حواف الزر دائرية */
+}
+/* تنسيق القسم بالكامل */
+.section {
+    margin-bottom: 40px; /* مسافة كبيرة بين "ترند رمضان" و "مسلسلات نصف رمضان" */
+    padding: 10px;
+    clear: both; /* لضمان عدم تداخل العناصر العائمة */
+}
+
+/* تنسيق حاوية الصور */
+.movies-grid {
+    display: flex;
+    flex-wrap: nowrap; /* لجعلها تظهر بجانب بعضها بشكل عرضي */
+    overflow-x: auto; /* لتفعيل التمرير الجانبي */
+    gap: 15px; /* مسافة بين كل بوستر والآخر */
+    padding-bottom: 20px; /* مسافة تحت الصور لكي يظهر الاسم بوضوح */
+}
+.movie-card {
+    min-width: 140px; /* عرض ثابت للبوستر */
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1a1a1a;
+}
+
+.movie-card img {
+    width: 100%;
+    height: 200px; /* ارتفاع ثابت للصور لتوحيد الشكل */
+    object-fit: cover; /* لضمان عدم تشوه الصورة */
+}
