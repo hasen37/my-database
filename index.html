@@ -150,6 +150,85 @@ function goToLive(url, name) {
     }
 }
 </script>
+<script type="module">
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  get
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyCRylao3qdt5mwOBD2d6FWRXPwH3bxyJnk",
+
+  authDomain: "drama-2026.firebaseapp.com",
+
+  databaseURL: "https://drama-2026-default-rtdb.firebaseio.com",
+
+  projectId: "drama-2026",
+
+  storageBucket: "drama-2026.firebasestorage.app",
+
+  messagingSenderId: "181274082450",
+
+  appId: "1:181274082450:web:3cfb637f7f6323fc5b3a4b"
+
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+
+async function loadSeries() {
+
+    try {
+
+        const snapshot = await get(ref(db, 'series'));
+
+        const data = snapshot.val();
+
+        console.log(data);
+
+        const container = document.getElementById('series-grid-main');
+
+        container.innerHTML = '';
+
+        Object.keys(data).forEach(key => {
+
+            const item = data[key];
+
+            container.innerHTML += `
+
+                <div class="card">
+
+                    <img src="${item.img}" alt="${item.name}">
+
+                    <div class="card-info">
+
+                        <p class="card-title">${item.name}</p>
+
+                    </div>
+
+                </div>
+
+            `;
+        });
+
+    } catch(error) {
+
+        console.log(error);
+
+    }
+}
+
+loadSeries();
+
+</script>
 </body>
 </html>
