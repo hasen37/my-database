@@ -232,15 +232,31 @@ function setupServers(linksData, epIndex) {
     }
 }
 
+
+// دالة التشغيل الذكية (التي ستعالج جميع صيغ الفيديو)
 function playVideo(url, btn) {
     const wrapper = document.getElementById('player-wrapper');
     const vContainer = document.getElementById('video-container');
-    vContainer.style.display = 'block';
     
-    wrapper.innerHTML = ""; // تنظيف المشغل القديم
+    // إظهار حاوية الفيديو
+    vContainer.style.display = 'block';
+    wrapper.innerHTML = ""; // تنظيف المشغل
 
-    // إذا كان الرابط m3u8 (أغلب القنوات)
-    if (url.includes('.m3u8')) {
+    // تحديد الزر النشط
+    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    // 1. فحص إذا كان الفيديو MP4 مباشر
+    if (url.toLowerCase().endsWith('.mp4')) {
+        const video = document.createElement("video");
+        video.src = url;
+        video.controls = true;
+        video.autoplay = true;
+        video.style.width = "100%";
+        wrapper.appendChild(video);
+    } 
+    // 2. فحص إذا كان البث M3U8 (HLS)
+    else if (url.toLowerCase().includes('.m3u8')) {
         const video = document.createElement("video");
         video.controls = true;
         video.autoplay = true;
@@ -251,22 +267,24 @@ function playVideo(url, btn) {
             const hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
+        } else {
+            video.src = url; // Fallback للمتصفحات التي تدعم hls أصلياً
         }
     } 
-    // إذا كان الرابط عبارة عن صفحة ويب (Embed) مثل روابط الأحمد
+    // 3. أي رابط آخر (مثل مواقع Embed أو الأحمد) سيتم فتحه في iframe
     else {
         const ifrm = document.createElement("iframe");
         ifrm.src = url;
         ifrm.style.width = "100%";
         ifrm.style.height = "100%";
         ifrm.setAttribute("allowfullscreen", "true");
-        ifrm.frameBorder = "0";
+        ifrm.setAttribute("frameborder", "0");
         wrapper.appendChild(ifrm);
     }
+    
+    // التمرير للمشغل تلقائياً
+    vContainer.scrollIntoView({ behavior: 'smooth' });
 }
-
 
 // 7. البحث والوظائف المساعدة
 function showSeriesList() {
