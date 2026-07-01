@@ -1060,3 +1060,24 @@ a {
 body {
     padding-bottom: 80px; /* مساحة تساوي ارتفاع الشريط السفلي تقريباً */
 }
+/* تنسيق المشغل ليكون متوافقاً مع الفيديو والـ Iframe */
+.player-box {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    position: relative;
+    margin-bottom: 15px;
+}
+
+#player-wrapper {
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+#player-wrapper video,
+#player-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+            }
