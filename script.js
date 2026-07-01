@@ -247,14 +247,26 @@ function playVideo(url, btn) {
     if(btn) btn.classList.add('active');
 
     // 1. فحص إذا كان الفيديو MP4 مباشر
-    if (url.toLowerCase().endsWith('.mp4')) {
-        const video = document.createElement("video");
-        video.src = url;
-        video.controls = true;
-        video.autoplay = true;
-        video.style.width = "100%";
-        wrapper.appendChild(video);
-    } 
+   // داخل دالة playVideo، استبدل جزء الـ MP4 بهذا:
+if (url.toLowerCase().endsWith('.mp4')) {
+    const video = document.createElement("video");
+    video.src = url;
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true; // مهم جداً للأيفون
+    video.style.width = "100%";
+    video.style.height = "100%";
+    
+    // إضافة نوع الملف للمتصفح
+    const source = document.createElement("source");
+    source.src = url;
+    source.type = "video/mp4";
+    video.appendChild(source);
+    
+    wrapper.innerHTML = ""; // تنظيف
+    wrapper.appendChild(video);
+}
+
     // 2. فحص إذا كان البث M3U8 (HLS)
     else if (url.toLowerCase().includes('.m3u8')) {
         const video = document.createElement("video");
